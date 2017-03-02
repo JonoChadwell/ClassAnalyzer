@@ -1,12 +1,20 @@
 #lang typed/racket
 
+;; represents a course
 (struct course ([dept : String] [number : String]))
 
-(struct exactly ([take : course]))
-(struct one-of ([list : (Listof requirement)]))
-(struct all-of ([list : (Listof requirement)]))
+;; represents a course requirement, as e.g. a graduation requirement for a particular program
+(define-type Requirement (U exactly one-of all-of))
 
-(define-type requirement (U exactly one-of all-of))
+;; represents a requirement that a student take a particular course
+(struct exactly ([take : course]))
+
+;; represents a requirement that a student satisfy one of a set of requirements
+(struct one-of ([list : (Listof Requirement)]))
+
+;; represents a requirement that a student satisfy all of a set of requirements
+(struct all-of ([list : (Listof Requirement)]))
+
 (define-type course-set (Listof course))
 
 ;; (: satisfies (-> requirement (Listof course)))
@@ -16,7 +24,7 @@
 
 ;; get all subsets of courses that fully satisfy req
 ;; a result of empty list implies the provided courses cannot satisfy the requirement
-(: get-satisfying-courses (-> (Listof course) requirement (Listof course-set)))
+(: get-satisfying-courses (-> (Listof course) Requirement (Listof course-set)))
 (define (get-satisfying-courses courses req)
   (cond
     [(exactly? req)
@@ -25,7 +33,7 @@
          empty)]
     [(one-of? req)
      (let ([reqs (one-of-list req)])
-       (append-map (lambda ([req : requirement]) (get-satisfying-courses courses req)) reqs))]
+       (append-map (lambda ([req : Requirement]) (get-satisfying-courses courses req)) reqs))]
     [(all-of? req) ;; empty]))
 
      (let ([reqs (all-of-list req)])

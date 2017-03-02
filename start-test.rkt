@@ -60,7 +60,7 @@
  (get-satisfying-courses
   (list CPE101 CPE102 CPE103 CPE357)
   (all-of (list (exactly CPE101) (exactly CPE102) (exactly CPE103))))
- empty)
+ (list (list CPE101 CPE102 CPE103)))
 
 ;; powerset result lists are backwards because I am too lazy to find a better way
 (check-not-false (member empty (powerset (list 1 2 3))))
