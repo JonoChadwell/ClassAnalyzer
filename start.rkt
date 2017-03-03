@@ -1,19 +1,21 @@
 #lang typed/racket
 
+(require racket/struct)
+
 ;; represents a course
-(struct course ([dept : String] [number : String]))
+(struct course ([dept : String] [number : String]) #:transparent)
 
 ;; represents a course requirement, as e.g. a graduation requirement for a particular program
 (define-type Requirement (U exactly one-of all-of))
 
 ;; represents a requirement that a student take a particular course
-(struct exactly ([take : course]))
+(struct exactly ([take : course]) #:transparent)
 
 ;; represents a requirement that a student satisfy one of a set of requirements
-(struct one-of ([list : (Listof Requirement)]))
+(struct one-of ([reqs : (Listof Requirement)]) #:transparent)
 
 ;; represents a requirement that a student satisfy all of a set of requirements
-(struct all-of ([list : (Listof Requirement)]))
+(struct all-of ([reqs : (Listof Requirement)]) #:transparent)
 
 (define-type course-set (Listof course))
 
@@ -32,11 +34,11 @@
          (list (list (exactly-take req)))
          empty)]
     [(one-of? req)
-     (let ([reqs (one-of-list req)])
+     (let ([reqs (one-of-reqs req)])
        (append-map (lambda ([req : Requirement]) (get-satisfying-courses courses req)) reqs))]
     [(all-of? req) ;; empty]))
 
-     (let ([reqs (all-of-list req)])
+     (let ([reqs (all-of-reqs req)])
        (if (empty? reqs)
            ;; (all-of empty) requires no courses to satisfy
            (list empty)
@@ -44,7 +46,6 @@
                   [satisfying-this (get-satisfying-courses courses this-requirement)]
                   [other-requirements (all-of (rest reqs))]
                   [satisfying-other (get-satisfying-courses courses other-requirements)])
-             
              (map (lambda ([val : (Pairof course-set course-set)])
                     (append (car val) (cdr val)))
                   (filter
@@ -91,4 +92,22 @@
       empty
       (append (map (lambda ([value : B]) (cons (first a) value)) b) (cross (rest a) b))))
 
-(provide get-satisfying-courses course exactly one-of all-of powerset list-subtract discrete? cross)
+;; Shorthand for creating a one of many classes requirement
+(: group-any (-> String * one-of))
+(define (group-any . values)
+  (one-of (group-list values)))
+
+(: group-all (-> String * all-of))
+(define (group-all . values)
+  (all-of (group-list values)))
+
+(: group-list (-> (Listof String) (Listof exactly)))
+(define (group-list vals)
+  (if (empty? vals)
+      empty
+      (let ([dept (first vals)]
+            [number (second vals)]
+            [remaining (rest (rest vals))])
+        (cons (exactly (course dept number)) (group-list remaining)))))
+
+(provide get-satisfying-courses course exactly one-of all-of powerset list-subtract discrete? cross group-all group-any)

@@ -85,3 +85,14 @@
 (check-equal? (cross (list 1 2 3) empty) empty)
 (check-equal? (cross empty (list 1 2 3)) empty)
 (check-equal? (cross (list 1 2) (list 3 4)) (list (cons 1 3) (cons 1 4) (cons 2 3) (cons 2 4)))
+
+(check-equal?
+ (group-any "ENGL" "133" "ENGL" "134")
+ (one-of (list
+          (exactly (course "ENGL" "133"))
+          (exactly (course "ENGL" "134")))))
+(check-equal?
+ (group-all "ENGL" "133" "ENGL" "134")
+ (all-of (list
+          (exactly (course "ENGL" "133"))
+          (exactly (course "ENGL" "134")))))
