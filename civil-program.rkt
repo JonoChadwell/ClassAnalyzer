@@ -7,9 +7,6 @@
 
 ;; Currently, technical elective requirements are not included
 
-(define tech-elective
-  
-
 (define bs-civil-15-17
   (all-of
    (list
@@ -91,3 +88,5 @@
              D2
              D3
              D4)))))
+
+(provide bs-civil-15-17)

@@ -491,3 +491,5 @@
            "UNIV" "350"
            "UNIV" "392"
            "WGS" "350"))
+
+(provide A1 A2 A3 B1 B2 B3 B5 B6 C1 C2 C3 C4 C5 D1 D2 D3 D4 D5 F)
