@@ -1,66 +1,66 @@
 #lang racket
 
+(require racket/set rackunit "start.rkt")
+
 (define CPE101 (course "CPE" "101"))
 (define CPE102 (course "CPE" "102"))
 (define CPE103 (course "CPE" "103"))
 (define CPE225 (course "CPE" "225"))
 (define CPE357 (course "CPE" "357"))
 
-(require rackunit "start.rkt")
-
 (check-equal?
  (get-satisfying-courses
-  empty
+  (set)
   (exactly CPE101))
  empty)
 
 (check-equal?
  (get-satisfying-courses
-  (list CPE101)
+  (set CPE101)
   (exactly CPE101))
- (list (list CPE101)))
+ (list (set CPE101)))
 
 (check-equal?
  (get-satisfying-courses
-  (list CPE101)
+  (set CPE101)
   (one-of (list (exactly CPE101) (exactly CPE102))))
- (list (list CPE101)))
+ (list (set CPE101)))
 
 (check-equal?
  (get-satisfying-courses
-  (list CPE101 CPE102)
+  (set CPE101 CPE102)
   (one-of (list (exactly CPE101) (exactly CPE102))))
- (list (list CPE101) (list CPE102)))
+ (list (set CPE101) (set CPE102)))
 
 (check-equal?
  (get-satisfying-courses
-  (list CPE101 CPE102)
+  (set CPE101 CPE102)
   (one-of (list (exactly CPE102))))
- (list (list CPE102)))
+ (list (set CPE102)))
 
 (check-equal?
  (get-satisfying-courses
-  (list CPE101 CPE102)
+  (set CPE101 CPE102)
   (all-of (list (exactly CPE101) (exactly CPE102))))
- (list (list CPE101 CPE102)))
+ (list (set CPE101 CPE102)))
 
 (check-equal?
  (get-satisfying-courses
-  (list CPE101 CPE102)
+  (set CPE101 CPE102)
   (all-of (list (exactly CPE101) (exactly CPE102) (exactly CPE103))))
  empty)
 
 (check-equal?
  (get-satisfying-courses
-  (list CPE101 CPE102)
+  (set CPE101 CPE102)
   (all-of (list (exactly CPE101) (exactly CPE102) (exactly CPE103))))
  empty)
 
 (check-equal?
  (get-satisfying-courses
-  (list CPE101 CPE102 CPE103 CPE357)
+  (set CPE101 CPE102 CPE103 CPE357)
   (all-of (list (exactly CPE101) (exactly CPE102) (exactly CPE103))))
- (list (list CPE101 CPE102 CPE103)))
+ (list (set CPE101 CPE102 CPE103)))
 
 ;; powerset result lists are backwards because I am too lazy to find a better way
 (check-not-false (member empty (powerset (list 1 2 3))))

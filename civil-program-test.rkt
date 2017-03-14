@@ -1,9 +1,9 @@
 #lang racket
 
-(require rackunit "start.rkt" "ge-areas.rkt" "civil-program.rkt")
+(require racket/set rackunit "start.rkt" "ge-areas.rkt" "civil-program.rkt")
 
 (define completed-coursework
-  (list
+  (set
    ;; core coursees
    (course "CE" "111")
    (course "CE" "112")
@@ -62,7 +62,7 @@
    (course "KINE" "250")))
 
 (define missing-senior-project
-  (list
+  (set
    ;; core coursees
    (course "CE" "111")
    (course "CE" "112")

@@ -1,6 +1,6 @@
 #lang racket
 
-(require "start.rkt" "ge-areas.rkt")
+(require racket/set "start.rkt" "ge-areas.rkt")
 
 ;; 2015-17 catalog.
 ;; Data from http://catalog.calpoly.edu/collegesandprograms/collegeofengineering/civilenvironmentalengineering/bscivilengineering/

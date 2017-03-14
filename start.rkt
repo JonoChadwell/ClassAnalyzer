@@ -1,6 +1,6 @@
 #lang typed/racket
 
-(require racket/struct)
+(require racket/set racket/struct)
 
 ;; represents a course
 (struct course ([dept : String] [number : String]) #:transparent)
@@ -17,40 +17,40 @@
 ;; represents a requirement that a student satisfy all of a set of requirements
 (struct all-of ([reqs : (Listof Requirement)]) #:transparent)
 
-(define-type course-set (Listof course))
+;; represents a group of courses
+(define-type course-set (Setof course))
 
 ;; (: satisfies (-> requirement (Listof course)))
 ;; (define (satisfies list
 
-(define courses (list (course "CE" "100") (course "CE" "101") (course "CE" "102")))
+(define courses (set (course "CE" "100") (course "CE" "101") (course "CE" "102")))
 
 ;; get all subsets of courses that fully satisfy req
-;; a result of empty list implies the provided courses cannot satisfy the requirement
-(: get-satisfying-courses (-> (Listof course) Requirement (Listof course-set)))
+;; a result of empty set implies the provided courses cannot satisfy the requirement
+(: get-satisfying-courses (-> course-set Requirement (Listof course-set)))
 (define (get-satisfying-courses courses req)
   (cond
     [(exactly? req)
-     (if (member (exactly-take req) courses)
-         (list (list (exactly-take req)))
+     (if (set-member? courses (exactly-take req))
+         (list (set (exactly-take req)))
          empty)]
     [(one-of? req)
      (let ([reqs (one-of-reqs req)])
        (append-map (lambda ([req : Requirement]) (get-satisfying-courses courses req)) reqs))]
-    [(all-of? req) ;; empty]))
-
+    [(all-of? req)
      (let ([reqs (all-of-reqs req)])
        (if (empty? reqs)
            ;; (all-of empty) requires no courses to satisfy
-           (list empty)
+           (list (set))
            (let* ([this-requirement (first reqs)]
                   [satisfying-this (get-satisfying-courses courses this-requirement)]
                   [other-requirements (all-of (rest reqs))]
                   [satisfying-other (get-satisfying-courses courses other-requirements)])
              (map (lambda ([val : (Pairof course-set course-set)])
-                    (append (car val) (cdr val)))
+                    (set-union (car val) (cdr val)))
                   (filter
                    (lambda ([val : (Pairof course-set course-set)])
-                     (discrete? (car val) (cdr val)))
+                     (set-discrete? (car val) (cdr val)))
                    (cross satisfying-this satisfying-other))))))]))
 
 (: powerset (All (A) (-> (Listof A) (Listof (Listof A)))))
@@ -84,6 +84,11 @@
       (if (member (first a) b)
           #f
           (discrete? (rest a) b))))
+
+;; returns true iff a and b share no elements
+(: set-discrete? (All (A) (-> (Setof A) (Setof A) Boolean)))
+(define (set-discrete? a b)
+  (set-empty? (set-intersect a b)))
 
 ;; returns the 'cross product' of two lists
 (: cross (All (A B) (-> (Listof A) (Listof B) (Listof (Pair A B)))))
