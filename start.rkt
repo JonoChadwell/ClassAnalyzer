@@ -20,10 +20,10 @@
 ;; represents a group of courses
 (define-type course-set (Setof course))
 
-;; (: satisfies (-> requirement (Listof course)))
-;; (define (satisfies list
-
-(define courses (set (course "CE" "100") (course "CE" "101") (course "CE" "102")))
+;; checks whether a course-set meets a requirement
+(: meets (-> course-set Requirement Boolean))
+(define (meets courses req)
+  (not (empty? (get-satisfying-courses courses req))))
 
 ;; get all subsets of courses that fully satisfy req
 ;; a result of empty set implies the provided courses cannot satisfy the requirement
@@ -52,6 +52,68 @@
                    (lambda ([val : (Pairof course-set course-set)])
                      (set-discrete? (car val) (cdr val)))
                    (cross satisfying-this satisfying-other))))))]))
+
+(: combine-two-class-counts (-> (HashTable course Integer) (HashTable course Integer) (HashTable course Integer)))
+(define (combine-two-class-counts a b)
+  (foldl
+   (lambda ([new-value : (Pairof course Integer)] [current : (HashTable course Integer)])
+     (hash-set
+      current
+      (car new-value)
+      (+ (hash-ref current (car new-value) (lambda () 0)) (cdr new-value))))
+   a
+   (hash->list b)))
+
+;; coerce the type checker
+(: hashCI (-> (HashTable course Integer)))
+(define (hashCI) (hash))
+
+(: combine-many-class-counts (-> (Listof (HashTable course Integer)) (HashTable course Integer)))
+(define (combine-many-class-counts lst)
+  (foldl combine-two-class-counts (hashCI) lst))
+
+;; counts the occurances of each course
+(: get-class-counts (-> Requirement (HashTable course Integer)))
+(define (get-class-counts req)
+  (cond
+    [(exactly? req)
+     (hash (exactly-take req) 1)]
+    [(one-of? req)
+     (combine-many-class-counts (map get-class-counts (one-of-reqs req)))]
+    [(all-of? req)
+     (combine-many-class-counts (map get-class-counts (all-of-reqs req)))]))
+
+
+;; gets the minimum number of classes a student has yet to take to satisfy a requirement
+(: get-remaining-count (-> course-set Requirement Integer))
+(define (get-remaining-count courses req)
+  0)
+
+;; returns every possible way to satisfy a requirement
+(: get-all-options (-> Requirement (Listof course-set)))
+(define (get-all-options req)
+  (cond
+    [(exactly? req)
+     (list (set (exactly-take req)))]
+    [(one-of? req)
+     (let ([reqs (one-of-reqs req)])
+       (append-map (lambda ([req : Requirement]) (get-all-options req)) reqs))]
+    [(all-of? req)
+     (let ([reqs (all-of-reqs req)])
+       (if (empty? reqs)
+           ;; (all-of empty) requires no courses to satisfy
+           (list (set))
+           (let* ([this-requirement (first reqs)]
+                  [all-this (get-all-options this-requirement)]
+                  [other-requirements (all-of (rest reqs))]
+                  [all-other (get-all-options other-requirements)])
+             (map (lambda ([val : (Pairof course-set course-set)])
+                    (set-union (car val) (cdr val)))
+                  ;; dont allow the same class twice
+                  (filter
+                   (lambda ([val : (Pairof course-set course-set)])
+                     (set-discrete? (car val) (cdr val)))
+                   (cross all-this all-other))))))]))
 
 (: powerset (All (A) (-> (Listof A) (Listof (Listof A)))))
 (define (powerset lst)
@@ -115,4 +177,18 @@
             [remaining (rest (rest vals))])
         (cons (exactly (course dept number)) (group-list remaining)))))
 
-(provide get-satisfying-courses course exactly one-of all-of powerset list-subtract discrete? cross group-all group-any)
+(provide
+ get-satisfying-courses
+ get-all-options course
+ exactly
+ one-of
+ all-of
+ powerset
+ list-subtract
+ discrete?
+ cross
+ group-all
+ group-any
+ combine-two-class-counts
+ combine-many-class-counts
+ get-class-counts)

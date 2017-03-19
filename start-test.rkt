@@ -8,6 +8,7 @@
 (define CPE225 (course "CPE" "225"))
 (define CPE357 (course "CPE" "357"))
 
+;; get-satisfying-courses tests
 (check-equal?
  (get-satisfying-courses
   (set)
@@ -62,6 +63,39 @@
   (all-of (list (exactly CPE101) (exactly CPE102) (exactly CPE103))))
  (list (set CPE101 CPE102 CPE103)))
 
+;; get-all-options tests
+(check-equal?
+ (get-all-options
+  (exactly CPE101))
+ (list (set CPE101)))
+
+(check-equal?
+ (get-all-options
+  (one-of (list (exactly CPE101) (exactly CPE102))))
+ (list (set CPE101) (set CPE102)))
+
+(check-equal?
+ (get-all-options
+  (one-of (list (exactly CPE102))))
+ (list (set CPE102)))
+
+(check-equal?
+ (get-all-options
+  (all-of (list (exactly CPE101) (exactly CPE102))))
+ (list (set CPE101 CPE102)))
+
+(check-equal?
+ (get-all-options
+  (all-of (list (exactly CPE101) (exactly CPE102) (exactly CPE103))))
+ (list (set CPE101 CPE102 CPE103)))
+
+(check-equal?
+ (get-all-options
+  (one-of (list
+           (all-of (list (exactly CPE101) (exactly CPE357)))
+           (all-of (list (exactly CPE102) (exactly CPE103))))))
+ (list (set CPE101 CPE357) (set CPE102 CPE103)))
+
 ;; powerset result lists are backwards because I am too lazy to find a better way
 (check-not-false (member empty (powerset (list 1 2 3))))
 (check-not-false (member (list 1) (powerset (list 1 2 3))))
@@ -96,3 +130,27 @@
  (all-of (list
           (exactly (course "ENGL" "133"))
           (exactly (course "ENGL" "134")))))
+
+;; combine class counts tests
+(check-equal?
+ (combine-two-class-counts (hash CPE101 1) (hash CPE101 2))
+ (hash CPE101 3))
+
+(check-equal?
+ (combine-two-class-counts (hash CPE101 3) (hash CPE102 2))
+ (hash CPE101 3 CPE102 2))
+
+(check-equal?
+ (combine-two-class-counts (hash CPE101 1 CPE102 3) (hash CPE101 1 CPE103 4))
+ (hash CPE101 2 CPE102 3 CPE103 4))
+
+(check-equal?
+ (combine-many-class-counts (list (hash CPE101 1 CPE102 3) (hash CPE101 1 CPE103 4) (hash CPE101 1 CPE357 5)))
+ (hash CPE101 3 CPE102 3 CPE103 4 CPE357 5))
+
+;; get class counts tests
+(check-equal?
+ (get-class-counts (all-of (list
+                            (one-of (list (exactly CPE101) (exactly CPE102)))
+                            (one-of (list (exactly CPE102) (exactly CPE103))))))
+ (hash CPE101 1 CPE102 2 CPE103 1))
