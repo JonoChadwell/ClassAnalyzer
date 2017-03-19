@@ -288,6 +288,9 @@
             "SPAN" "203"))
 
 (define D1 (group-any
+            "ES" "112"
+            "HIST" "201"
+            "HIST" "202"
             "HIST" "206"
             "HIST" "207"
             "HNRS" "112"
@@ -323,30 +326,17 @@
             "HNRS" "223"
             "RELS" "201"
             "RPTA" "201"
-            "SOC" "110"
-            ))
+            "SOC" "110"))
 
 (define D4 (group-any
+            "EDES" "123"
+            "FSN" "250"
+            "JOUR" "218"
             "KINE" "250"
             "KINE" "255"
             "KINE" "260"
             "PSY" "201"
-            "PSY" "202"
-            "ES" "243"
-            "ES" "244"
-            "GEOG" "150"
-            "HIST" "210"
-            "HIST" "216"
-            "HIST" "221"
-            "HIST" "222"
-            "HIST" "223"
-            "HNRS" "212"
-            "HNRS" "216"
-            "HNRS" "223"
-            "RELS" "201"
-            "RPTA" "201"
-            "SOC" "110"
-            ))
+            "PSY" "202"))
 
 (define D5 (group-any 
             "ANT" "325"
