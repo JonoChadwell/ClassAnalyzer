@@ -9,4 +9,12 @@
 (: right (All (A B) (-> (Pairof A B) B)))
 (define right cdr)
 
-(provide pair left right)
+(: min-list (-> (Listof Integer) Integer))
+(define (min-list lst)
+  (foldl min (first lst) (rest lst)))
+
+(: sum-list (-> (Listof Integer) Integer))
+(define (sum-list lst)
+  (foldl + (first lst) (rest lst)))
+
+(provide pair left right min-list sum-list)

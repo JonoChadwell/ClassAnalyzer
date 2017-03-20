@@ -177,9 +177,37 @@
     (pair new-classes new-req)))
 
 ;; gets the minimum number of classes a student has yet to take to satisfy a requirement
+;; req must contain no duplicated courses
+(: get-remaining-count-deduped (-> course-set Requirement Integer))
+(define (get-remaining-count-deduped courses req)
+  (cond
+    [(exactly? req)
+     (if (set-member? courses (exactly-take req))
+         0
+         1)]
+    [(one-of? req)
+     (let ([reqs (one-of-reqs req)])
+       (min-list
+        (map
+         (lambda ([r : Requirement]) (get-remaining-count-deduped courses r))
+         reqs)))]
+    [(all-of? req)
+     (let ([reqs (all-of-reqs req)])
+       (sum-list
+        (map
+         (lambda ([r : Requirement]) (get-remaining-count-deduped courses r))
+         reqs)))]))
+
+;; gets the minimum number of classes a student has yet to take to satisfy a requirement
 (: get-remaining-count (-> course-set Requirement Integer))
 (define (get-remaining-count courses req)
-  0)
+  (let* ([result (deduplicate-courses courses req)]
+         [possible-courses (left result)]
+         [new-req (right result)])
+    (min-list (map
+               (lambda ([courses : course-set])
+                 (get-remaining-count-deduped courses new-req))
+               possible-courses))))
 
 ;; returns every possible way to satisfy a requirement
 (: get-all-options (-> Requirement (Listof course-set)))
@@ -287,4 +315,5 @@
  rename-courses
  explode-courses
  deduplicate-courses
+ get-remaining-count
  get-class-counts)

@@ -225,3 +225,36 @@
   (all-of (list
            (one-of (list (exactly (course "CPE" "101_#1")) (exactly CPE102)))
            (one-of (list (exactly (course "CPE" "101_#2")) (exactly CPE103)))))))
+
+;; get-remaining-count tests
+(check-equal?
+ (get-remaining-count
+  (set CPE101 CPE102)
+  (all-of (list
+           (one-of (list (exactly CPE101) (exactly CPE102)))
+           (one-of (list (exactly CPE101) (exactly CPE103))))))
+ 0)
+
+(check-equal?
+ (get-remaining-count
+  (set CPE101)
+  (all-of (list
+           (one-of (list (exactly CPE101) (exactly CPE102)))
+           (one-of (list (exactly CPE101) (exactly CPE103))))))
+ 1)
+
+(check-equal?
+ (get-remaining-count
+  (set)
+  (all-of (list
+           (one-of (list (exactly CPE101) (exactly CPE102)))
+           (one-of (list (exactly CPE101) (exactly CPE103))))))
+ 2)
+
+(check-equal?
+ (get-remaining-count
+  (set CPE103)
+  (all-of (list
+           (one-of (list (exactly CPE101) (exactly CPE102)))
+           (all-of (list (exactly CPE103) (exactly CPE357))))))
+ 2)
