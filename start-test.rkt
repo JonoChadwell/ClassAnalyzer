@@ -154,3 +154,44 @@
                             (one-of (list (exactly CPE101) (exactly CPE102)))
                             (one-of (list (exactly CPE102) (exactly CPE103))))))
  (hash CPE101 1 CPE102 2 CPE103 1))
+
+;; strip singletons tests
+(check-equal?
+ (strip-singletons (hash CPE101 1 CPE102 2 CPE103 1))
+ (hash CPE102 2))
+
+;; rename courses tests
+(check-equal?
+ (rename-courses (exactly CPE101) (hash CPE101 1))
+ (exactly (course "CPE" "101_#1")))
+
+(check-equal?
+ (rename-courses (exactly CPE101) (hash CPE102 0))
+ (exactly (course "CPE" "101")))
+
+(check-exn
+ exn:fail?
+ (lambda () (rename-courses (exactly CPE101) (hash CPE102 5)))
+ "too few courses found")
+
+(check-equal?
+ (rename-courses (all-of (list (exactly CPE101) (exactly CPE102))) (hash))
+ (all-of (list (exactly CPE101) (exactly CPE102))))
+
+(check-equal?
+ (rename-courses (all-of (list (exactly CPE101) (exactly CPE101))) (hash CPE101 2))
+ (all-of (list (exactly (course "CPE" "101_#1")) (exactly (course "CPE" "101_#2")))))
+
+(check-exn
+ exn:fail?
+ (lambda () (rename-courses (all-of (list (exactly CPE101) (exactly CPE101))) (hash CPE101 1)))
+ "too many courses found")
+
+(check-equal?
+ (rename-courses (all-of (list
+                            (one-of (list (exactly CPE101) (exactly CPE101)))
+                            (one-of (list (exactly CPE101) (exactly CPE101)))))
+                 (hash CPE101 4))
+ (all-of (list
+          (one-of (list (exactly (course "CPE" "101_#1")) (exactly (course "CPE" "101_#2"))))
+          (one-of (list (exactly (course "CPE" "101_#3")) (exactly (course "CPE" "101_#4")))))))

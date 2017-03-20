@@ -1,8 +1,11 @@
 #lang typed/racket
 
-(require racket/set racket/struct)
+(require "utilities.rkt" racket/set racket/struct)
 
 ;; represents a course
+;; Number may include _###, which is used to represent a "variant" of a course.
+;; this is done to explode requirements that use the same course twice into easier
+;; to manage requirements with no double duplicated courses.
 (struct course ([dept : String] [number : String]) #:transparent)
 
 ;; represents a course requirement, as e.g. a graduation requirement for a particular program
@@ -83,6 +86,68 @@
     [(all-of? req)
      (combine-many-class-counts (map get-class-counts (all-of-reqs req)))]))
 
+(: strip-singletons (-> (HashTable course Integer) (HashTable course Integer)))
+(define (strip-singletons table)
+  (strip-singletons-recursive (hash->list table)))
+
+(: strip-singletons-recursive (-> (Listof (Pairof course Integer)) (HashTable course Integer)))
+(define (strip-singletons-recursive lst)
+  (if (empty? lst)
+      (hashCI)
+      (if (eq? 1 (right (first lst)))
+          (strip-singletons-recursive (rest lst))
+          (hash-set (strip-singletons-recursive (rest lst)) (left (first lst)) (right (first lst))))))
+
+(: rename-courses (-> Requirement (HashTable course Integer) Requirement))
+(define (rename-courses req table)
+  (let* ([result ((rename-courses-monadic req) table)]
+         [result-table (left result)]
+         [result-nonzero
+          (filter (lambda ([x : (Pairof course Integer)]) (not (eq? 0 (right x))))
+                  (hash->list result-table))])
+    (if (empty? result-nonzero)
+        (right ((rename-courses-monadic req) table))
+        (error "too few courses found"))))
+
+(: rename-courses-monadic (-> Requirement (-> (HashTable course Integer) (Pairof (HashTable course Integer) Requirement))))
+(define (rename-courses-monadic req)
+  (lambda ([table : (HashTable course Integer)])
+    (cond
+      [(exactly? req)
+       (let* ([crs (exactly-take req)]
+              [val (hash-ref table crs (lambda () -1))]
+              [postfix (if (eq? -1 val) "" (string-append "_#" (number->string val)))]
+              [new-table (if (eq? -1 val) table (hash-set table crs (- val 1)))]
+              [new-req (exactly (course (course-dept crs) (string-append (course-number crs) postfix)))])
+         (if (eq? val 0)
+             (error "too many courses found")
+             (pair new-table new-req)))]
+      [(one-of? req)
+       (let* ([reqs (one-of-reqs req)]
+              [fold-result (foldr
+                            (lambda ([req : Requirement] [val : (Pairof (HashTable course Integer) (Listof Requirement))])
+                              (let ([result ((rename-courses-monadic req) (left val))])
+                                (pair (left result) (cons (right result) (right val)))))
+                            (pair table empty)
+                            reqs)])
+         (pair (left fold-result) (one-of (right fold-result))))]
+      [(all-of? req)
+       (let* ([reqs (all-of-reqs req)]
+              [fold-result (foldr
+                            (lambda ([req : Requirement] [val : (Pairof (HashTable course Integer) (Listof Requirement))])
+                              (let ([result ((rename-courses-monadic req) (left val))])
+                                (pair (left result) (cons (right result) (right val)))))
+                            (pair table empty)
+                            reqs)])
+         (pair (left fold-result) (all-of (right fold-result))))])))
+
+;; "dedupes" a requirement by exploding all like classes into different instances of the same class
+(: deduplicate-courses (-> course-set Requirement (Listof (Pairof course-set Requirement))))
+(define (deduplicate-courses courses req)
+  (let ([counts
+         (filter (lambda ([x : (Pairof course Integer)]) (set-member? courses (left x)))
+                 (hash->list (get-class-counts req)))])
+    empty))
 
 ;; gets the minimum number of classes a student has yet to take to satisfy a requirement
 (: get-remaining-count (-> course-set Requirement Integer))
@@ -191,4 +256,6 @@
  group-any
  combine-two-class-counts
  combine-many-class-counts
+ strip-singletons
+ rename-courses
  get-class-counts)
