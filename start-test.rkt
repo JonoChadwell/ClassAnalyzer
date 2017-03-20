@@ -1,6 +1,6 @@
 #lang racket
 
-(require racket/set rackunit "start.rkt")
+(require racket/set rackunit "start.rkt" "utilities.rkt")
 
 (define CPE101 (course "CPE" "101"))
 (define CPE102 (course "CPE" "102"))
@@ -195,3 +195,33 @@
  (all-of (list
           (one-of (list (exactly (course "CPE" "101_#1")) (exactly (course "CPE" "101_#2"))))
           (one-of (list (exactly (course "CPE" "101_#3")) (exactly (course "CPE" "101_#4")))))))
+
+;; explode courses tests
+(check-equal?
+ (explode-courses (set CPE101 CPE102 CPE103) (hash->list (hash CPE101 3)))
+ (list (set (course "CPE" "101_#1") CPE102 CPE103)
+       (set (course "CPE" "101_#2") CPE102 CPE103)
+       (set (course "CPE" "101_#3") CPE102 CPE103)))
+
+(check-equal?
+ (explode-courses (set CPE101 CPE102 CPE103) (hash->list (hash CPE101 3 CPE102 2)))
+ (list (set (course "CPE" "101_#1") (course "CPE" "102_#1") CPE103)
+       (set (course "CPE" "101_#1") (course "CPE" "102_#2") CPE103)
+       (set (course "CPE" "101_#2") (course "CPE" "102_#1") CPE103)
+       (set (course "CPE" "101_#2") (course "CPE" "102_#2") CPE103)
+       (set (course "CPE" "101_#3") (course "CPE" "102_#1") CPE103)
+       (set (course "CPE" "101_#3") (course "CPE" "102_#2") CPE103)))
+
+;; deduplicate-courses tests
+(check-equal?
+ (deduplicate-courses
+  (set CPE101 CPE102)
+  (all-of (list
+           (one-of (list (exactly CPE101) (exactly CPE102)))
+           (one-of (list (exactly CPE101) (exactly CPE103))))))
+ (pair
+  (list (set (course "CPE" "101_#1") CPE102)
+        (set (course "CPE" "101_#2") CPE102))
+  (all-of (list
+           (one-of (list (exactly (course "CPE" "101_#1")) (exactly CPE102)))
+           (one-of (list (exactly (course "CPE" "101_#2")) (exactly CPE103)))))))

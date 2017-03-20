@@ -98,6 +98,15 @@
           (strip-singletons-recursive (rest lst))
           (hash-set (strip-singletons-recursive (rest lst)) (left (first lst)) (right (first lst))))))
 
+;; adds _#val to the course number of a course. Makes no change if val is -1.
+(: rename-course (-> course Integer course))
+(define (rename-course crs val)
+  (if (eq? val -1)
+      crs
+      (let ([postfix(string-append "_#" (number->string val))])
+        (course (course-dept crs) (string-append (course-number crs) postfix)))))
+
+;; Produces a requirement with all courses in req and table renamed to be unique
 (: rename-courses (-> Requirement (HashTable course Integer) Requirement))
 (define (rename-courses req table)
   (let* ([result ((rename-courses-monadic req) table)]
@@ -116,9 +125,8 @@
       [(exactly? req)
        (let* ([crs (exactly-take req)]
               [val (hash-ref table crs (lambda () -1))]
-              [postfix (if (eq? -1 val) "" (string-append "_#" (number->string val)))]
               [new-table (if (eq? -1 val) table (hash-set table crs (- val 1)))]
-              [new-req (exactly (course (course-dept crs) (string-append (course-number crs) postfix)))])
+              [new-req (exactly (rename-course crs val))])
          (if (eq? val 0)
              (error "too many courses found")
              (pair new-table new-req)))]
@@ -141,13 +149,32 @@
                             reqs)])
          (pair (left fold-result) (all-of (right fold-result))))])))
 
+;; Create all possible variants of a course set using the number of variants in table
+(: explode-courses (-> course-set (Listof (Pairof course Integer)) (Listof course-set)))
+(define (explode-courses courses lst)
+  (if (empty? lst)
+      (list courses)
+      (let* ([replacement-course (left (first lst))]
+             [replacement-count (right (first lst))]
+             [others (explode-courses (set-remove courses replacement-course) (rest lst))]
+             [new-courses (map
+                           (lambda ([x : Integer]) (rename-course replacement-course (+ x 1)))
+                           (range replacement-count))])
+        (map (lambda ([p : (Pairof course course-set)])
+               (set-add (right p) (left p)))
+             (cross new-courses others)))))
+
 ;; "dedupes" a requirement by exploding all like classes into different instances of the same class
-(: deduplicate-courses (-> course-set Requirement (Listof (Pairof course-set Requirement))))
+(: deduplicate-courses (-> course-set Requirement (Pairof (Listof course-set) Requirement)))
 (define (deduplicate-courses courses req)
-  (let ([counts
-         (filter (lambda ([x : (Pairof course Integer)]) (set-member? courses (left x)))
-                 (hash->list (get-class-counts req)))])
-    empty))
+  (let* ([counts
+          (make-immutable-hash
+           (filter
+            (lambda ([x : (Pairof course Integer)]) (set-member? courses (left x)))
+            (hash->list (strip-singletons (get-class-counts req)))))]
+         [new-req (rename-courses req counts)]
+         [new-classes (explode-courses courses (hash->list counts))])
+    (pair new-classes new-req)))
 
 ;; gets the minimum number of classes a student has yet to take to satisfy a requirement
 (: get-remaining-count (-> course-set Requirement Integer))
@@ -258,4 +285,6 @@
  combine-many-class-counts
  strip-singletons
  rename-courses
+ explode-courses
+ deduplicate-courses
  get-class-counts)
