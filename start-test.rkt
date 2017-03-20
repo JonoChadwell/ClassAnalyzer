@@ -258,3 +258,20 @@
            (one-of (list (exactly CPE101) (exactly CPE102)))
            (all-of (list (exactly CPE103) (exactly CPE357))))))
  2)
+
+;; helps-student tests
+(check-true
+ (helps-student
+  (set CPE103)
+  (all-of (list
+           (one-of (list (exactly CPE101) (exactly CPE102)))
+           (all-of (list (exactly CPE103) (exactly CPE357)))))
+  CPE101))
+
+(check-false
+ (helps-student
+  (set CPE103 CPE102)
+  (all-of (list
+           (one-of (list (exactly CPE101) (exactly CPE102)))
+           (all-of (list (exactly CPE103) (exactly CPE357)))))
+  CPE101))
