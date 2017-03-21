@@ -322,4 +322,7 @@
  deduplicate-courses
  get-remaining-count
  get-class-counts
- helps-student)
+ helps-student
+ course
+ course-dept
+ course-number)

@@ -91,14 +91,26 @@
 
 (define (valid-te crs)
   (or
-   (member?
+   (member
     crs
     (list
      (course "CE" "356")
      (course "CE" "371")
      (course "CM" "371")
      (course "ENVE" "325")))
-   
+   (and (or (eq? (course-dept crs) "ENVE")
+            (eq? (course-dept crs) "CE"))
+        (and (> (string->number (course-number crs)) 400)
+             (not
+              (member
+               crs
+               (list
+                (course "CE" "465")
+                (course "CE" "466")
+                (course "CE" "467")
+                (course "CE" "468")
+                (course "CE" "469")
+                (course "CE" "404"))))))))
 
 (define te-four-unit-max
   (list
