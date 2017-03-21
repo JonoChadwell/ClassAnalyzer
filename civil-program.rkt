@@ -89,4 +89,50 @@
              D3
              D4)))))
 
+(define (valid-te crs)
+  (or
+   (member?
+    crs
+    (list
+     (course "CE" "356")
+     (course "CE" "371")
+     (course "CM" "371")
+     (course "ENVE" "325")))
+   
+
+(define te-four-unit-max
+  (list
+   (course "ARCE" "305")
+   (course "ARCE" "372")
+   (course "ARCE" "403")
+   (course "BIO" "421")
+   (course "NR" "421")
+   (course "SS" "421")
+   (course "BMED" "404")
+   (course "CE" "404")
+   (course "ME" "404")
+   (course "BRAE" "345")
+   (course "BRAE" "447")
+   (course "BRAE" "532")
+   (course "CHEM" "341")
+   (course "CM" "334")
+   (course "CM" "432")
+   (course "CRP" "420")
+   (course "CRP" "435")
+   (course "CRP" "404")
+   (course "NR" "404")
+   (course "CRP" "408")
+   (course "NR" "408")
+   (course "ERSC" "401")
+   (course "GEOL" "401")
+   (course "ERSC" "402")
+   (course "GEOL" "402")
+   (course "GEOL" "415")
+   (course "IME" "314")
+   (course "MATE" "425")
+   (course "MATE" "450")
+   (course "MATH" "344")
+   (course "SS" "423")
+   (course "SS" "442")))
+
 (provide bs-civil-15-17)
