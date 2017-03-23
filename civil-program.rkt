@@ -147,4 +147,23 @@
    (course "SS" "423")
    (course "SS" "442")))
 
-(provide bs-civil-15-17)
+;; prerequisites leave out co-requisites (for now)
+(define important-courses
+  (hash
+   (course "CE" "111") (all-of empty)
+   (course "CE" "112") (all-of empty) ;; leaving out calc 1 requirement because we don't have data for AP high school credit
+   (course "CE" "113") (all-of empty)
+   (course "CE" "204") (exactly (course "ME" "211"))
+   (course "CE" "207") (exactly (course "CE" "204"))
+   (course "CE" "251") (group-all "CE" "113" "CE" "204" "MATH" "244")
+   (course "CE" "259") (exactly (course "CE" "204"))
+   (course "CE" "321") (exactly (course "CE" "259"))
+   (course "CE" "336") (group-any "ME" "341" "ENVE" "264")
+   (course "CE" "352") (exactly (course "CE" "207"))
+   (course "CE" "355") (all-of (list (exactly (course "CE" "259")) (group-any "CE" "351" "CE" "352")))
+   (course "CE" "381") (all-of (list (exactly (course "CE" "207")) (group-any "ME" "341" "ENVE" "264")))
+   (course "CE" "465") (all-of empty)))
+   
+   
+
+(provide bs-civil-15-17 important-courses)

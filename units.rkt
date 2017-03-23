@@ -40,3 +40,5 @@
    (course "CE" "596") 1
    (course "CE" "599") 12 ;; assuming max
    ))
+
+(provide unit-counts)

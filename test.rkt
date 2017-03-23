@@ -1,3 +1,5 @@
 #lang racket
 
-(require "utilities.rkt" racket/set racket/struct)
+(require "utilities.rkt" racket/set racket/struct plot)
+
+
