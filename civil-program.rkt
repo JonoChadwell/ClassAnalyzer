@@ -161,9 +161,6 @@
    (course "CE" "336") (group-any "ME" "341" "ENVE" "264")
    (course "CE" "352") (exactly (course "CE" "207"))
    (course "CE" "355") (all-of (list (exactly (course "CE" "259")) (group-any "CE" "351" "CE" "352")))
-   (course "CE" "381") (all-of (list (exactly (course "CE" "207")) (group-any "ME" "341" "ENVE" "264")))
-   (course "CE" "465") (all-of empty)))
-   
-   
+   (course "CE" "381") (all-of (list (exactly (course "CE" "207")) (group-any "ME" "341" "ENVE" "264")))))
 
 (provide bs-civil-15-17 important-courses)

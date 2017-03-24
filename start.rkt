@@ -303,6 +303,7 @@
   (< (get-remaining-count (set-add courses crs) req) (get-remaining-count courses req)))
 
 (provide
+ meets
  get-satisfying-courses
  get-all-options course
  exactly
