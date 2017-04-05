@@ -41,4 +41,7 @@
    (course "CE" "599") 12 ;; assuming max
    ))
 
-(provide unit-counts)
+(define (get-num-units crs)
+  (hash-ref unit-counts crs (lambda () 4)))
+
+(provide unit-counts get-num-units)
