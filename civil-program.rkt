@@ -1,13 +1,11 @@
 #lang racket
 
-(require racket/set "start.rkt" "ge-areas.rkt")
+(require racket/set "start.rkt" "ge-areas.rkt" "utilities.rkt" "units.rkt")
 
 ;; 2015-17 catalog.
 ;; Data from http://catalog.calpoly.edu/collegesandprograms/collegeofengineering/civilenvironmentalengineering/bscivilengineering/
 
-;; Currently, technical elective requirements are not included
-
-(define bs-civil-15-17
+(define bs-civil-15-17-main-coursework
   (all-of
    (list
     ;; senior project
@@ -89,6 +87,7 @@
              D3
              D4)))))
 
+;; checks whether a course is a valid core tech-elective
 (define (valid-te crs)
   (or
    (member
@@ -112,6 +111,7 @@
                 (course "CE" "469")
                 (course "CE" "404"))))))))
 
+;; CE students can get credit for up to 4 units from these courses
 (define te-four-unit-max
   (list
    (course "ARCE" "305")
@@ -146,6 +146,35 @@
    (course "MATH" "344")
    (course "SS" "423")
    (course "SS" "442")))
+
+(define (count-te-limited-units courses)
+  (min 4
+       (sum-list
+        (map get-num-units
+             (filter
+              (lambda (crs) (member crs te-four-unit-max))
+              (set->list courses))))))
+
+(define (count-te-non-limited-units courses)
+  (sum-list
+   (map get-num-units
+        (filter
+         valid-te
+         (set->list courses)))))
+
+(define (count-total-te-units courses)
+  (+ (count-te-limited-units courses) (count-te-non-limited-units)))
+
+(define needed-te-units 24)
+
+(define (meets-te-requirement courses)
+  (>= (count-total-te-units courses) needed-te-units))
+
+(define bs-civil-15-17
+  (degree-requirement
+   "Civil Engineering BS. 2015-17 catalog."
+   bs-civil-15-17-main-coursework
+   meets-te-requirement))
 
 ;; prerequisites leave out co-requisites (for now)
 (define important-courses

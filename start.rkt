@@ -20,6 +20,13 @@
 ;; represents a requirement that a student satisfy all of a set of requirements
 (struct all-of ([reqs : (Listof Requirement)]) #:transparent)
 
+;; represents the full requirements for a degree
+(struct degree-requirement
+  ([name : String]
+   [main-coursework : Requirement]
+   [te-checker : (-> course-set Boolean)])
+  #:transparent)
+
 ;; represents a group of courses
 (define-type course-set (Setof course))
 
@@ -326,4 +333,5 @@
  helps-student
  course
  course-dept
- course-number)
+ course-number
+ degree-requirement)
