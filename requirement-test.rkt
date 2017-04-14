@@ -1,6 +1,6 @@
 #lang racket
 
-(require racket/set rackunit "start.rkt" "utilities.rkt")
+(require racket/set rackunit "requirement.rkt" "types.rkt" "utilities.rkt")
 
 (define CPE101 (course "CPE" "101"))
 (define CPE102 (course "CPE" "102"))

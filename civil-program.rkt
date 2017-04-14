@@ -167,14 +167,12 @@
 
 (define needed-te-units 24)
 
-(define (meets-te-requirement courses)
-  (>= (count-total-te-units courses) needed-te-units))
-
 (define bs-civil-15-17
   (degree-requirement
    "Civil Engineering BS. 2015-17 catalog."
    bs-civil-15-17-main-coursework
-   meets-te-requirement))
+   count-total-te-units
+   needed-te-units))
 
 ;; prerequisites leave out co-requisites (for now)
 (define important-courses

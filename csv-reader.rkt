@@ -39,5 +39,36 @@
        (course "CSC" "102")
        (course "CSC" "103")))
 
-(define (read-student-file)
-  (csv-map identity (open-input-file "data/no-names-ce-grade-data.csv")))
+(define (read-student-file file-name)
+  (csv-map identity (open-input-file file-name)))
+
+(define (build-students all-data)
+  (if (empty? all-data)
+      (hash)
+      (let* ([datum (first all-data)]
+             [student-id (id datum)]
+             [crs (class datum)]
+             [remaining (build-students (rest all-data))]
+             [student-set (hash-ref remaining student-id (lambda () (set)))])
+        (hash-set remaining student-id (set-add student-set crs)))))
+
+(check-equal?
+ (build-students test-data)
+ (hash
+  "001231123"
+  (set
+   (course "CSC" "101")
+   (course "CSC" "102")
+   (course "CSC" "103")
+   (course "CSC" "141")
+   (course "CSC" "357"))
+  "004565432"
+  (set
+   (course "CSC" "101")
+   (course "CSC" "102")
+   (course "CSC" "103"))))
+
+(define (read-csv-file file-name)
+  (build-students (read-student-file file-name)))
+
+(provide read-csv-file)

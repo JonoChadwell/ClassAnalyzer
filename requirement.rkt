@@ -1,34 +1,6 @@
 #lang typed/racket
 
-(require "utilities.rkt" racket/set racket/struct)
-
-;; represents a course
-;; Number may include _###, which is used to represent a "variant" of a course.
-;; this is done to explode requirements that use the same course twice into easier
-;; to manage requirements with no double duplicated courses.
-(struct course ([dept : String] [number : String]) #:transparent)
-
-;; represents a course requirement, as e.g. a graduation requirement for a particular program
-(define-type Requirement (U exactly one-of all-of))
-
-;; represents a requirement that a student take a particular course
-(struct exactly ([take : course]) #:transparent)
-
-;; represents a requirement that a student satisfy one of a set of requirements
-(struct one-of ([reqs : (Listof Requirement)]) #:transparent)
-
-;; represents a requirement that a student satisfy all of a set of requirements
-(struct all-of ([reqs : (Listof Requirement)]) #:transparent)
-
-;; represents the full requirements for a degree
-(struct degree-requirement
-  ([name : String]
-   [main-coursework : Requirement]
-   [te-checker : (-> course-set Boolean)])
-  #:transparent)
-
-;; represents a group of courses
-(define-type course-set (Setof course))
+(require "utilities.rkt" "types.rkt" racket/set racket/struct)
 
 ;; checks whether a course-set meets a requirement
 (: meets (-> course-set Requirement Boolean))
@@ -313,9 +285,6 @@
  meets
  get-satisfying-courses
  get-all-options course
- exactly
- one-of
- all-of
  powerset
  list-subtract
  discrete?
@@ -330,8 +299,4 @@
  deduplicate-courses
  get-remaining-count
  get-class-counts
- helps-student
- course
- course-dept
- course-number
- degree-requirement)
+ helps-student)

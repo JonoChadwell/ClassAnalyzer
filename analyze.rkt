@@ -1,20 +1,8 @@
 #lang racket
 
-(require racket/set "start.rkt" "utilities.rkt" "civil-program.rkt" plot)
+(require racket/set "start.rkt" "utilities.rkt" "civil-program.rkt" "csv-reader.rkt" plot)
 
-(define input_file (open-input-file "data/data.txt" #:mode'text))
-
-(define (get-student-hash lst)
-  (if (empty? lst)
-      (hash)
-      (let* ([student-id (first (first lst))]
-             [crs (course (second (first lst)) (third (first lst)))]
-             [remaining (get-student-hash (rest lst))]
-             [student-set (hash-ref remaining student-id (lambda () (set)))])
-        (hash-set remaining student-id (set-add student-set crs)))))
-
-(define raw-input (read input_file))
-(define student-hash (get-student-hash raw-input))
+(define student-hash (read-csv-file "data/no-names-ce-grade-data.csv"))
 
 (define student-class-counts
   (map
@@ -54,5 +42,3 @@
 (plot-width 800)
 
 (do-plot)
-
-(close-input-port input_file)
