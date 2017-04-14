@@ -1,6 +1,6 @@
 #lang racket
 
-(require racket/set "start.rkt" "utilities.rkt")
+(require racket/set rackunit "types.rkt" "utilities.rkt")
 
 (define unit-counts
   (hash
@@ -43,5 +43,13 @@
 
 (define (get-num-units crs)
   (hash-ref unit-counts crs (lambda () 4)))
+
+(check-equal?
+ (get-num-units (course "CE" "406"))
+ 5)
+
+(check-equal?
+ (get-num-units (course "CE" "444"))
+ 4)
 
 (provide unit-counts get-num-units)
