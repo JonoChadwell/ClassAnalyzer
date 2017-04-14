@@ -1,6 +1,6 @@
 #lang racket
 
-(require racket/set rackunit "start.rkt" "ge-areas.rkt" "civil-program.rkt")
+(require racket/set rackunit "requirement.rkt" "ge-areas.rkt" "civil-program.rkt" "types.rkt")
 
 (define completed-coursework
   (set
@@ -118,5 +118,5 @@
    (course "ANT" "201")
    (course "KINE" "250")))
 
-(check-false (empty? (get-satisfying-courses completed-coursework bs-civil-15-17)))
-(check-true (empty? (get-satisfying-courses missing-senior-project bs-civil-15-17)))
+(check-false (empty? (get-satisfying-courses completed-coursework (curriculum-requirements bs-civil-15-17))))
+(check-true (empty? (get-satisfying-courses missing-senior-project (curriculum-requirements bs-civil-15-17))))

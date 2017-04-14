@@ -276,10 +276,12 @@
             [remaining (rest (rest vals))])
         (cons (exactly (course dept number)) (group-list remaining)))))
 
-;; Returns true when a class would progress a student towards graduation
-(: helps-student (-> course-set Requirement course Boolean))
-(define (helps-student courses req crs)
-  (< (get-remaining-count (set-add courses crs) req) (get-remaining-count courses req)))
+(: helps-student-core (-> student course Boolean))
+(define (helps-student-core stdnt crs)
+  (let ([courses (student-coursework stdnt)]
+        [req (curriculum-requirements (student-major stdnt))])
+    (< (get-remaining-count (set-add courses crs) req)
+       (get-remaining-count courses req))))
 
 (provide
  meets
@@ -299,4 +301,4 @@
  deduplicate-courses
  get-remaining-count
  get-class-counts
- helps-student)
+ helps-student-core)

@@ -1,6 +1,6 @@
 #lang racket
 
-(require racket/set "start.rkt" "ge-areas.rkt" "utilities.rkt" "units.rkt")
+(require racket/set "requirement.rkt" "types.rkt" "ge-areas.rkt" "utilities.rkt" "units.rkt")
 
 ;; 2015-17 catalog.
 ;; Data from http://catalog.calpoly.edu/collegesandprograms/collegeofengineering/civilenvironmentalengineering/bscivilengineering/
@@ -168,7 +168,7 @@
 (define needed-te-units 24)
 
 (define bs-civil-15-17
-  (degree-requirement
+  (curriculum
    "Civil Engineering BS. 2015-17 catalog."
    bs-civil-15-17-main-coursework
    count-total-te-units

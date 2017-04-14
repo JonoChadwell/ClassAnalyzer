@@ -32,7 +32,7 @@
         (lambda (crs) (and
                        (> (string->number (course-number crs)) 200)
                        (eq? (course-dept crs) "FAKE")))
-        courses))))
+        (set->list courses)))))
    16))
 
 (define test-student-fresh
@@ -98,3 +98,18 @@
     (course "FAKE" "220")
     (course "FAKE" "230")
     (course "FAKE" "300"))))
+
+(check-true
+ (helps-student? test-student-fresh (course "FAKE" "103")))
+
+(check-false
+ (helps-student? test-student-fresh (course "FAKE" "101")))
+
+(check-true
+ (helps-student? test-student-halfway (course "FAKE" "280")))
+
+(check-true
+ (helps-student? test-student-missing-te (course "FAKE" "280")))
+
+(check-false
+ (helps-student? test-student-missing-core (course "FAKE" "280")))

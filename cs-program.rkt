@@ -1,6 +1,6 @@
 #lang racket
 
-(require racket/set "start.rkt" "ge-areas.rkt" "utilities.rkt" "units.rkt")
+(require racket/set "requirement.rkt" "ge-areas.rkt" "utilities.rkt" "units.rkt" "types.rkt")
 
 ;; 2015-17 catalog.
 ;; http://catalog.calpoly.edu/collegesandprograms/collegeofengineering/computersciencesoftwareengineering/bscomputerscience/
@@ -14,7 +14,7 @@
      "CSC" "492")
 
     ;; Discrete Math
-    (group-one
+    (group-any
      "CSC" "108"
      "CSC" "202")
 
@@ -55,12 +55,12 @@
              (all-of (list
                       (exactly (course "BIO" "213"))
                       (exactly (course "BMED" "213"))))
-             (group-one
+             (group-any
               "BIO" "111"
               "BIO" "161"
               "MCRO" "221"
               "MCRO" "224")))
-    (group-one
+    (group-any
      "MATH" "241"
      "MATH" "248"
      "MATH" "306"
@@ -85,7 +85,7 @@
               "PHYS" "141"
               "PHYS" "132"
               "PHYS" "133")))
-    (group-one
+    (group-any
      "BIO" "111"
      "BIO" "161"
      "BOT" "121"
@@ -109,63 +109,181 @@
 
 ;; checks whether a course is a valid core tech-elective
 (define (valid-te crs)
-  (or
-   (member
-    crs
-    (list
-     (course "CE" "356")
-     (course "CE" "371")
-     (course "CM" "371")
-     (course "ENVE" "325")))
-   (and (or (eq? (course-dept crs) "ENVE")
-            (eq? (course-dept crs) "CE"))
-        (and (> (string->number (course-number crs)) 400)
-             (not
-              (member
-               crs
-               (list
-                (course "CE" "465")
-                (course "CE" "466")
-                (course "CE" "467")
-                (course "CE" "468")
-                (course "CE" "469")
-                (course "CE" "404"))))))))
+  ;; todo
+  #f)
 
-;; CE students can get credit for up to 4 units from these courses
+(define te-valid
+  (list
+   (course "CSC" "301")
+   (course "CSC" "305")
+   (course "CSC" "309")
+   (course "CSC" "321")
+   (course "CSC" "323")
+   (course "CSC" "325")
+   (course "CSC" "344")
+   (course "CSC" "365")
+   (course "CSC" "366")
+   (course "CSC" "369")
+   (course "CSC" "371")
+   (course "CSC" "378")
+   (course "CSC" "400")
+   (course "CSC" "402")
+   (course "CSC" "405")
+   (course "CSC" "406")
+   (course "CSC" "409")
+   (course "CSC" "410")
+   (course "CSC" "422")
+   (course "CSC" "424")
+   (course "CSC" "429")
+   (course "CSC" "435")
+   (course "CSC" "436")
+   (course "CSC" "437")
+   (course "CSC" "448")
+   (course "CSC" "454")
+   (course "CPE" "454")
+   (course "CSC" "458")
+   (course "CPE" "458")
+   (course "CSC" "466")
+   (course "CSC" "468")
+   (course "CSC" "471")
+   (course "CPE" "471")
+   (course "CSC" "473")
+   (course "CSC" "474")
+   (course "CSC" "476")
+   (course "CPE" "476")
+   (course "CSC" "477")
+   (course "CSC" "478")
+   (course "CSC" "480")
+   (course "CSC" "481")
+   (course "CSC" "483")
+   (course "CSC" "484")
+   (course "CSC" "486")
+   (course "CSC" "489")
+   (course "CSC" "490")
+   (course "CSC" "496")
+   (course "CSC" "508")
+   (course "CSC" "509")
+   (course "CSC" "515")
+   (course "CPE" "515")
+   (course "CSC" "521")
+   (course "CSC" "530")
+   (course "CSC" "540")
+   (course "CSC" "550")
+   (course "CSC" "560")
+   (course "CSC" "564")
+   (course "CPE" "564")
+   (course "CSC" "566")
+   (course "CSC" "569")
+   (course "CPE" "569")
+   (course "CSC" "570")
+   (course "CSC" "572")
+   (course "CSC" "580")
+   (course "CSC" "581")
+   (course "CSC" "582")
+   (course "CPE" "400")
+   (course "CPE" "416")
+   (course "CPE" "419")
+   (course "CPE" "428")
+   (course "CPE" "464")
+   (course "CPE" "465")
+   (course "CPE" "482")
+   (course "CPE" "485")
+   (course "CPE" "488")
+   (course "DATA" "301")))
+
+(define te-must-have
+  (list
+   (course "CSC" "325")
+   (course "CSC" "366")
+   (course "CSC" "402")
+   (course "CSC" "405")
+   (course "CSC" "406")
+   (course "CSC" "409")
+   (course "CSC" "410")
+   (course "CSC" "422")
+   (course "CSC" "424")
+   (course "CSC" "429")
+   (course "CSC" "435")
+   (course "CSC" "437")
+   (course "CSC" "454")
+   (course "CPE" "454")
+   (course "CSC" "466")
+   (course "CSC" "468")
+   (course "CSC" "473")
+   (course "CSC" "474")
+   (course "CSC" "476")
+   (course "CPE" "476")
+   (course "CSC" "477")
+   (course "CSC" "478")
+   (course "CSC" "481")
+   (course "CSC" "483")
+   (course "CSC" "484")
+   (course "CSC" "486")
+   (course "CSC" "489")
+   (course "CSC" "508")
+   (course "CSC" "509")
+   (course "CSC" "515")
+   (course "CPE" "515")
+   (course "CSC" "521")
+   (course "CSC" "530")
+   (course "CSC" "540")
+   (course "CSC" "550")
+   (course "CSC" "560")
+   (course "CSC" "564")
+   (course "CPE" "564")
+   (course "CSC" "566")
+   (course "CSC" "572")
+   (course "CSC" "580")
+   (course "CSC" "581")
+   (course "CSC" "582")
+   (course "CPE" "416")
+   (course "CPE" "465")))
+
+;; CSC students can get credit for up to 4 units from these courses
 (define te-four-unit-max
   (list
-   (course "ARCE" "305")
-   (course "ARCE" "372")
-   (course "ARCE" "403")
-   (course "BIO" "421")
-   (course "NR" "421")
-   (course "SS" "421")
-   (course "BMED" "404")
-   (course "CE" "404")
-   (course "ME" "404")
-   (course "BRAE" "345")
-   (course "BRAE" "447")
-   (course "BRAE" "532")
-   (course "CHEM" "341")
-   (course "CM" "334")
-   (course "CM" "432")
-   (course "CRP" "420")
-   (course "CRP" "435")
-   (course "CRP" "404")
-   (course "NR" "404")
-   (course "CRP" "408")
-   (course "NR" "408")
-   (course "ERSC" "401")
-   (course "GEOL" "401")
-   (course "ERSC" "402")
-   (course "GEOL" "402")
-   (course "GEOL" "415")
+   (course "AERO" "450")
+   (course "ART" "384")
+   (course "BUS" "310")
+   (course "CHEM" "216")
+   (course "CHEM" "217")
+   (course "CHEM" "218")
+   (course "CHEM" "312")
+   (course "ECON" "339")
+   (course "EE" "201")
+   (course "EE" "251")
+   (course "EE" "314")
+   (course "EE" "336")
+   (course "CPE" "336")
+   (course "EE" "424")
+   (course "ENVE" "542")
+   (course "IME" "301")
    (course "IME" "314")
-   (course "MATE" "425")
-   (course "MATE" "450")
-   (course "MATH" "344")
-   (course "SS" "423")
-   (course "SS" "442")))
+   (course "IME" "356")
+   (course "MATH" "241")
+   (course "MATH" "242")
+   (course "MATH" "248")
+   (course "MATH" "304")
+   (course "MATH" "341")
+   (course "MATH" "350")
+   (course "MATH" "412")
+   (course "ME" "211")
+   (course "ME" "212")
+   (course "ME" "405")
+   (course "PHIL" "412")
+   (course "PHIL" "422")
+   (course "PSY" "329")
+   (course "PSY" "333")
+   (course "PSY" "351")
+   (course "PSY" "457")
+   (course "STAT" "313")
+   (course "STAT" "323")
+   (course "STAT" "324")
+   (course "STAT" "330")
+   (course "STAT" "331")
+   (course "STAT" "416")
+   (course "STAT" "418")
+   (course "STAT" "419")))
 
 (define (count-te-limited-units courses)
   (min 4
@@ -191,10 +309,10 @@
   (>= (count-total-te-units courses) needed-te-units))
 
 (define bs-civil-15-17
-  (degree-requirement
+  (curriculum
    "Civil Engineering BS. 2015-17 catalog."
    bs-civil-15-17-main-coursework
-   meets-te-requirement))
+   count-total-te-units))
 
 ;; prerequisites leave out co-requisites (for now)
 (define important-courses

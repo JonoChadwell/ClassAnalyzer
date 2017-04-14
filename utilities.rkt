@@ -13,11 +13,15 @@
 
 (: min-list (-> (Listof Integer) Integer))
 (define (min-list lst)
-  (foldl min (first lst) (rest lst)))
+  (if (empty? lst)
+      (error "Empty list has no minimum element")
+      (foldl min (first lst) (rest lst))))
 
 (: sum-list (-> (Listof Integer) Integer))
 (define (sum-list lst)
-  (foldl + (first lst) (rest lst)))
+  (if (empty? lst)
+      0
+      (foldl + (first lst) (rest lst))))
 
 (: smallest-set (All (A) (-> (Listof (Setof A)) (Setof A))))
 (define (smallest-set lst)

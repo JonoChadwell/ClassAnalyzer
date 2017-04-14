@@ -1,6 +1,6 @@
 #lang racket
 
-(require "start.rkt")
+(require "requirement.rkt" "types.rkt")
 
 (define A1 (group-any
             "ENGL" "133"
