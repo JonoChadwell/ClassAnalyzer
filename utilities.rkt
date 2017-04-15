@@ -37,4 +37,10 @@
 (check-equal? (smallest-set (list (set 0 1 2) (set 0 1) (set 0 1 2 3)))
               (set 0 1))
 
-(provide pair left right min-list sum-list smallest-set)
+(provide
+ pair
+ left
+ right
+ min-list
+ sum-list
+ smallest-set)
