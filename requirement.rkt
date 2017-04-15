@@ -35,10 +35,10 @@
                      (set-discrete? (car val) (cdr val)))
                    (cross satisfying-this satisfying-other))))))]))
 
-(: combine-two-class-counts (-> (HashTable course Integer) (HashTable course Integer) (HashTable course Integer)))
+(: combine-two-class-counts (-> (HashTable course-id Integer) (HashTable course-id Integer) (HashTable course-id Integer)))
 (define (combine-two-class-counts a b)
   (foldl
-   (lambda ([new-value : (Pairof course Integer)] [current : (HashTable course Integer)])
+   (lambda ([new-value : (Pairof course-id Integer)] [current : (HashTable course-id Integer)])
      (hash-set
       current
       (car new-value)
@@ -47,15 +47,15 @@
    (hash->list b)))
 
 ;; coerce the type checker
-(: hashCI (-> (HashTable course Integer)))
+(: hashCI (-> (HashTable course-id Integer)))
 (define (hashCI) (hash))
 
-(: combine-many-class-counts (-> (Listof (HashTable course Integer)) (HashTable course Integer)))
+(: combine-many-class-counts (-> (Listof (HashTable course-id Integer)) (HashTable course-id Integer)))
 (define (combine-many-class-counts lst)
   (foldl combine-two-class-counts (hashCI) lst))
 
 ;; counts the occurances of each course
-(: get-class-counts (-> Requirement (HashTable course Integer)))
+(: get-class-counts (-> Requirement (HashTable course-id Integer)))
 (define (get-class-counts req)
   (cond
     [(exactly? req)
@@ -65,11 +65,11 @@
     [(all-of? req)
      (combine-many-class-counts (map get-class-counts (all-of-reqs req)))]))
 
-(: strip-singletons (-> (HashTable course Integer) (HashTable course Integer)))
+(: strip-singletons (-> (HashTable course-id Integer) (HashTable course-id Integer)))
 (define (strip-singletons table)
   (strip-singletons-recursive (hash->list table)))
 
-(: strip-singletons-recursive (-> (Listof (Pairof course Integer)) (HashTable course Integer)))
+(: strip-singletons-recursive (-> (Listof (Pairof course-id Integer)) (HashTable course-id Integer)))
 (define (strip-singletons-recursive lst)
   (if (empty? lst)
       (hashCI)
@@ -78,28 +78,28 @@
           (hash-set (strip-singletons-recursive (rest lst)) (left (first lst)) (right (first lst))))))
 
 ;; adds _#val to the course number of a course. Makes no change if val is -1.
-(: rename-course (-> course Integer course))
+(: rename-course (-> course-id Integer course-id))
 (define (rename-course crs val)
   (if (eq? val -1)
       crs
       (let ([postfix(string-append "_#" (number->string val))])
-        (course (course-dept crs) (string-append (course-number crs) postfix)))))
+        (course-id (course-id-dept crs) (string-append (course-id-number crs) postfix)))))
 
 ;; Produces a requirement with all courses in req and table renamed to be unique
-(: rename-courses (-> Requirement (HashTable course Integer) Requirement))
+(: rename-courses (-> Requirement (HashTable course-id Integer) Requirement))
 (define (rename-courses req table)
   (let* ([result ((rename-courses-monadic req) table)]
          [result-table (left result)]
          [result-nonzero
-          (filter (lambda ([x : (Pairof course Integer)]) (not (eq? 0 (right x))))
+          (filter (lambda ([x : (Pairof course-id Integer)]) (not (eq? 0 (right x))))
                   (hash->list result-table))])
     (if (empty? result-nonzero)
         (right ((rename-courses-monadic req) table))
         (error "too few courses found"))))
 
-(: rename-courses-monadic (-> Requirement (-> (HashTable course Integer) (Pairof (HashTable course Integer) Requirement))))
+(: rename-courses-monadic (-> Requirement (-> (HashTable course-id Integer) (Pairof (HashTable course-id Integer) Requirement))))
 (define (rename-courses-monadic req)
-  (lambda ([table : (HashTable course Integer)])
+  (lambda ([table : (HashTable course-id Integer)])
     (cond
       [(exactly? req)
        (let* ([crs (exactly-take req)]
@@ -112,7 +112,7 @@
       [(one-of? req)
        (let* ([reqs (one-of-reqs req)]
               [fold-result (foldr
-                            (lambda ([req : Requirement] [val : (Pairof (HashTable course Integer) (Listof Requirement))])
+                            (lambda ([req : Requirement] [val : (Pairof (HashTable course-id Integer) (Listof Requirement))])
                               (let ([result ((rename-courses-monadic req) (left val))])
                                 (pair (left result) (cons (right result) (right val)))))
                             (pair table empty)
@@ -121,7 +121,7 @@
       [(all-of? req)
        (let* ([reqs (all-of-reqs req)]
               [fold-result (foldr
-                            (lambda ([req : Requirement] [val : (Pairof (HashTable course Integer) (Listof Requirement))])
+                            (lambda ([req : Requirement] [val : (Pairof (HashTable course-id Integer) (Listof Requirement))])
                               (let ([result ((rename-courses-monadic req) (left val))])
                                 (pair (left result) (cons (right result) (right val)))))
                             (pair table empty)
@@ -129,7 +129,7 @@
          (pair (left fold-result) (all-of (right fold-result))))])))
 
 ;; Create all possible variants of a course set using the number of variants in table
-(: explode-courses (-> course-set (Listof (Pairof course Integer)) (Listof course-set)))
+(: explode-courses (-> course-set (Listof (Pairof course-id Integer)) (Listof course-set)))
 (define (explode-courses courses lst)
   (if (empty? lst)
       (list courses)
@@ -139,7 +139,7 @@
              [new-courses (map
                            (lambda ([x : Integer]) (rename-course replacement-course (+ x 1)))
                            (range replacement-count))])
-        (map (lambda ([p : (Pairof course course-set)])
+        (map (lambda ([p : (Pairof course-id course-set)])
                (set-add (right p) (left p)))
              (cross new-courses others)))))
 
@@ -149,7 +149,7 @@
   (let* ([counts
           (make-immutable-hash
            (filter
-            (lambda ([x : (Pairof course Integer)]) (set-member? courses (left x)))
+            (lambda ([x : (Pairof course-id Integer)]) (set-member? courses (left x)))
             (hash->list (strip-singletons (get-class-counts req)))))]
          [new-req (rename-courses req counts)]
          [new-classes (explode-courses courses (hash->list counts))])
@@ -274,14 +274,274 @@
       (let ([dept (first vals)]
             [number (second vals)]
             [remaining (rest (rest vals))])
-        (cons (exactly (course dept number)) (group-list remaining)))))
+        (cons (exactly (course-id dept number)) (group-list remaining)))))
 
-(: helps-student-core (-> student course Boolean))
+(: helps-student-core (-> student course-id Boolean))
 (define (helps-student-core stdnt crs)
   (let ([courses (student-coursework stdnt)]
         [req (curriculum-requirements (student-major stdnt))])
     (< (get-remaining-count (set-add courses crs) req)
        (get-remaining-count courses req))))
+
+(module+ test
+  (require typed/rackunit)
+  
+  (define CPE101 (course-id "CPE" "101"))
+  (define CPE102 (course-id "CPE" "102"))
+  (define CPE103 (course-id "CPE" "103"))
+  (define CPE225 (course-id "CPE" "225"))
+  (define CPE357 (course-id "CPE" "357"))
+
+  ;; get-satisfying-courses tests
+  (check-equal?
+   (get-satisfying-courses
+    (set)
+    (exactly CPE101))
+   empty)
+
+  (check-equal?
+   (get-satisfying-courses
+    (set CPE101)
+    (exactly CPE101))
+   (list (set CPE101)))
+
+  (check-equal?
+   (get-satisfying-courses
+    (set CPE101)
+    (one-of (list (exactly CPE101) (exactly CPE102))))
+   (list (set CPE101)))
+
+  (check-equal?
+   (get-satisfying-courses
+    (set CPE101 CPE102)
+    (one-of (list (exactly CPE101) (exactly CPE102))))
+   (list (set CPE101) (set CPE102)))
+
+  (check-equal?
+   (get-satisfying-courses
+    (set CPE101 CPE102)
+    (one-of (list (exactly CPE102))))
+   (list (set CPE102)))
+
+  (check-equal?
+   (get-satisfying-courses
+    (set CPE101 CPE102)
+    (all-of (list (exactly CPE101) (exactly CPE102))))
+   (list (set CPE101 CPE102)))
+
+  (check-equal?
+   (get-satisfying-courses
+    (set CPE101 CPE102)
+    (all-of (list (exactly CPE101) (exactly CPE102) (exactly CPE103))))
+   empty)
+
+  (check-equal?
+   (get-satisfying-courses
+    (set CPE101 CPE102)
+    (all-of (list (exactly CPE101) (exactly CPE102) (exactly CPE103))))
+   empty)
+
+  (check-equal?
+   (get-satisfying-courses
+    (set CPE101 CPE102 CPE103 CPE357)
+    (all-of (list (exactly CPE101) (exactly CPE102) (exactly CPE103))))
+   (list (set CPE101 CPE102 CPE103)))
+
+  ;; get-all-options tests
+  (check-equal?
+   (get-all-options
+    (exactly CPE101))
+   (list (set CPE101)))
+
+  (check-equal?
+   (get-all-options
+    (one-of (list (exactly CPE101) (exactly CPE102))))
+   (list (set CPE101) (set CPE102)))
+
+  (check-equal?
+   (get-all-options
+    (one-of (list (exactly CPE102))))
+   (list (set CPE102)))
+
+  (check-equal?
+   (get-all-options
+    (all-of (list (exactly CPE101) (exactly CPE102))))
+   (list (set CPE101 CPE102)))
+
+  (check-equal?
+   (get-all-options
+    (all-of (list (exactly CPE101) (exactly CPE102) (exactly CPE103))))
+   (list (set CPE101 CPE102 CPE103)))
+
+  (check-equal?
+   (get-all-options
+    (one-of (list
+             (all-of (list (exactly CPE101) (exactly CPE357)))
+             (all-of (list (exactly CPE102) (exactly CPE103))))))
+   (list (set CPE101 CPE357) (set CPE102 CPE103)))
+
+  ;; powerset result lists are backwards because I am too lazy to find a better way
+  (check-not-false (member empty (powerset (list 1 2 3))))
+  (check-not-false (member (list 1) (powerset (list 1 2 3))))
+  (check-not-false (member (list 2) (powerset (list 1 2 3))))
+  (check-not-false (member (list 3) (powerset (list 1 2 3))))
+  (check-not-false (member (list 2 1) (powerset (list 1 2 3))))
+  (check-not-false (member (list 3 1) (powerset (list 1 2 3))))
+  (check-not-false (member (list 3 2) (powerset (list 1 2 3))))
+  (check-not-false (member (list 3 2 1) (powerset (list 1 2 3))))
+
+  (check-true (discrete? (list 1 2 3) (list 4 5 6)))
+  (check-true (discrete? (list 1 2 3) (list 5 6 8)))
+  (check-false (discrete? (list 1 2 3) (list 5 4 3)))
+  (check-false (discrete? (list 1 2 3) (list 3 4 5)))
+  (check-false (discrete? (list 1 2 3) (list 3 3 3)))
+  (check-false (discrete? (list 1 2 3) (list 5 4 1)))
+  (check-false (discrete? (list 1 2 3) (list 1 4 5)))
+
+  (check-equal? (list-subtract (list 1 2 3 4 5) (list 2 4 5)) (list 1 3))
+
+  (check-equal? (cross (list 1 2 3) empty) empty)
+  (check-equal? (cross empty (list 1 2 3)) empty)
+  (check-equal? (cross (list 1 2) (list 3 4)) (list (cons 1 3) (cons 1 4) (cons 2 3) (cons 2 4)))
+
+  (check-equal?
+   (group-any "ENGL" "133" "ENGL" "134")
+   (one-of (list
+            (exactly (course-id "ENGL" "133"))
+            (exactly (course-id "ENGL" "134")))))
+  (check-equal?
+   (group-all "ENGL" "133" "ENGL" "134")
+   (all-of (list
+            (exactly (course-id "ENGL" "133"))
+            (exactly (course-id "ENGL" "134")))))
+
+  ;; combine class counts tests
+  (check-equal?
+   (combine-two-class-counts (hash CPE101 1) (hash CPE101 2))
+   (hash CPE101 3))
+
+  (check-equal?
+   (combine-two-class-counts (hash CPE101 3) (hash CPE102 2))
+   (hash CPE101 3 CPE102 2))
+
+  (check-equal?
+   (combine-two-class-counts (hash CPE101 1 CPE102 3) (hash CPE101 1 CPE103 4))
+   (hash CPE101 2 CPE102 3 CPE103 4))
+
+  (check-equal?
+   (combine-many-class-counts (list (hash CPE101 1 CPE102 3) (hash CPE101 1 CPE103 4) (hash CPE101 1 CPE357 5)))
+   (hash CPE101 3 CPE102 3 CPE103 4 CPE357 5))
+
+  ;; get class counts tests
+  (check-equal?
+   (get-class-counts (all-of (list
+                              (one-of (list (exactly CPE101) (exactly CPE102)))
+                              (one-of (list (exactly CPE102) (exactly CPE103))))))
+   (hash CPE101 1 CPE102 2 CPE103 1))
+
+  ;; strip singletons tests
+  (check-equal?
+   (strip-singletons (hash CPE101 1 CPE102 2 CPE103 1))
+   (hash CPE102 2))
+
+  ;; rename courses tests
+  (check-equal?
+   (rename-courses (exactly CPE101) (hash CPE101 1))
+   (exactly (course-id "CPE" "101_#1")))
+
+  (check-equal?
+   (rename-courses (exactly CPE101) (hash CPE102 0))
+   (exactly (course-id "CPE" "101")))
+
+  (check-exn
+   exn:fail?
+   (lambda () (rename-courses (exactly CPE101) (hash CPE102 5)))
+   "too few courses found")
+
+  (check-equal?
+   (rename-courses (all-of (list (exactly CPE101) (exactly CPE102))) (hash))
+   (all-of (list (exactly CPE101) (exactly CPE102))))
+
+  (check-equal?
+   (rename-courses (all-of (list (exactly CPE101) (exactly CPE101))) (hash CPE101 2))
+   (all-of (list (exactly (course-id "CPE" "101_#1")) (exactly (course-id "CPE" "101_#2")))))
+
+  (check-exn
+   exn:fail?
+   (lambda () (rename-courses (all-of (list (exactly CPE101) (exactly CPE101))) (hash CPE101 1)))
+   "too many courses found")
+
+  (check-equal?
+   (rename-courses (all-of (list
+                            (one-of (list (exactly CPE101) (exactly CPE101)))
+                            (one-of (list (exactly CPE101) (exactly CPE101)))))
+                   (hash CPE101 4))
+   (all-of (list
+            (one-of (list (exactly (course-id "CPE" "101_#1")) (exactly (course-id "CPE" "101_#2"))))
+            (one-of (list (exactly (course-id "CPE" "101_#3")) (exactly (course-id "CPE" "101_#4")))))))
+
+  ;; explode courses tests
+  (check-equal?
+   (explode-courses (set CPE101 CPE102 CPE103) (hash->list (hash CPE101 3)))
+   (list (set (course-id "CPE" "101_#1") CPE102 CPE103)
+         (set (course-id "CPE" "101_#2") CPE102 CPE103)
+         (set (course-id "CPE" "101_#3") CPE102 CPE103)))
+
+  (check-equal?
+   (list->set (explode-courses (set CPE101 CPE102 CPE103) (hash->list (hash CPE101 3 CPE102 2))))
+   (set (set (course-id "CPE" "101_#1") (course-id "CPE" "102_#1") CPE103)
+        (set (course-id "CPE" "101_#1") (course-id "CPE" "102_#2") CPE103)
+        (set (course-id "CPE" "101_#2") (course-id "CPE" "102_#1") CPE103)
+        (set (course-id "CPE" "101_#2") (course-id "CPE" "102_#2") CPE103)
+        (set (course-id "CPE" "101_#3") (course-id "CPE" "102_#1") CPE103)
+        (set (course-id "CPE" "101_#3") (course-id "CPE" "102_#2") CPE103)))
+
+  ;; deduplicate-courses tests
+  (check-equal?
+   (deduplicate-courses
+    (set CPE101 CPE102)
+    (all-of (list
+             (one-of (list (exactly CPE101) (exactly CPE102)))
+             (one-of (list (exactly CPE101) (exactly CPE103))))))
+   (pair
+    (list (set (course-id "CPE" "101_#1") CPE102)
+          (set (course-id "CPE" "101_#2") CPE102))
+    (all-of (list
+             (one-of (list (exactly (course-id "CPE" "101_#1")) (exactly CPE102)))
+             (one-of (list (exactly (course-id "CPE" "101_#2")) (exactly CPE103)))))))
+
+  ;; get-remaining-count tests
+  (check-equal?
+   (get-remaining-count
+    (set CPE101 CPE102)
+    (all-of (list
+             (one-of (list (exactly CPE101) (exactly CPE102)))
+             (one-of (list (exactly CPE101) (exactly CPE103))))))
+   0)
+
+  (check-equal?
+   (get-remaining-count
+    (set CPE101)
+    (all-of (list
+             (one-of (list (exactly CPE101) (exactly CPE102)))
+             (one-of (list (exactly CPE101) (exactly CPE103))))))
+   1)
+
+  (check-equal?
+   (get-remaining-count
+    (set)
+    (all-of (list
+             (one-of (list (exactly CPE101) (exactly CPE102)))
+             (one-of (list (exactly CPE101) (exactly CPE103))))))
+   2)
+
+  (check-equal?
+   (get-remaining-count
+    (set CPE103)
+    (all-of (list
+             (one-of (list (exactly CPE101) (exactly CPE102)))
+             (all-of (list (exactly CPE103) (exactly CPE357))))))
+   2))
 
 (provide
  meets
@@ -293,8 +553,6 @@
  cross
  group-all
  group-any
- combine-two-class-counts
- combine-many-class-counts
  strip-singletons
  rename-courses
  explode-courses
