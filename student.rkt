@@ -55,6 +55,13 @@
       (< x qtr))
     (student-coursework stdnt))))
 
+;; Gets the first quarter a student took a class at cal poly (assumed to be the
+;; earliest quarter out of classes listed for the student).
+(: student-first-quarter (-> student Quarter))
+(define (student-first-quarter stdnt)
+  (min-list
+   (hash-keys (student-coursework stdnt))))
+
 (module+ test
   (require typed/rackunit)
 

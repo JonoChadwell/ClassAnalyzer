@@ -1,36 +1,42 @@
 #lang racket
 
-(require racket/set "start.rkt" "utilities.rkt" "civil-program.rkt" "csv-reader.rkt" plot)
+(require racket/set "requirement.rkt" "utilities.rkt" "civil-program.rkt" "csv-reader.rkt" "student.rkt" "types.rkt" plot)
 
-(define student-hash (read-csv-file "data/no-names-ce-grade-data.csv"))
-
-(define student-class-counts
-  (map
-   (lambda (courses)
-     (get-remaining-count courses bs-civil-15-17))
-   (hash-values student-hash)))
+(define student-list (get-students-from-file "data/no-names-ce-grade-data.csv" bs-civil-15-17))
 
 (define (get-matching-students courses req)
   (filter (lambda (x) (meets x req)) courses))
 
 (define (course->string crs)
-  (string-append (course-dept crs) "_" (course-number crs)))
+  (string-append (course-id-dept crs) "_" (course-id-number crs)))
 
-(define plot-data
+;; Current enrollment
+(define current-enrollment-data
   (map
-   (lambda (pr)
+   (lambda (considered-course)
      (vector
-      (course->string (left pr))
+      (course->string considered-course)
       (length
        (filter
-        (lambda (student) (helps-student (right student) bs-civil-15-17 (left pr)))
-        (filter
-         (lambda (student)
-           (and
-            (meets (right student) (right pr))
-            (not (set-member? (right student) (left pr)))))
-         (hash->list student-hash))))))
-   (hash->list important-courses)))
+        (lambda (stdnt)
+          (set-member? (student-enrolled-classes stdnt) considered-course))
+        student-list))))
+   (hash-keys important-courses)))
+
+;; Course completion
+(define courses-completed-data
+  (map
+   (lambda (considered-course)
+     (vector
+      (course->string considered-course)
+      (length
+       (filter
+        (lambda (stdnt)
+          (set-member? (student-current-classes stdnt) considered-course))
+        student-list))))
+   (hash-keys important-courses)))
+
+(define plot-data courses-completed-data)
 
 (define (do-plot)
   (plot (discrete-histogram

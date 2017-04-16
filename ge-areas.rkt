@@ -110,8 +110,8 @@
 (define B6
   (one-of (list
            (all-of (list
-                    (exactly (course "PHYS" "412"))
-                    (exactly (course "PHYS" "451"))))
+                    (exactly (course-id "PHYS" "412"))
+                    (exactly (course-id "PHYS" "451"))))
            (group-any
             "CSC" "341"
             "GEOL" "305"

@@ -41,7 +41,7 @@
    (hash->list course-tables)))
 
 (define (get-students-from-file file-name degree)
-  (build-students (read-student-file file-name) degree))
+  (build-students (build-student-course-tables (read-student-file file-name)) degree))
 
 (module+ test
   (require rackunit)
