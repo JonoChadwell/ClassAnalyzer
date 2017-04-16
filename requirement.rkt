@@ -1,6 +1,6 @@
 #lang typed/racket
 
-(require "utilities.rkt" "types.rkt" racket/set racket/struct)
+(require "utilities.rkt" "types.rkt" "student.rkt" racket/set racket/struct)
 
 ;; checks whether a course-set meets a requirement
 (: meets (-> course-set Requirement Boolean))
@@ -276,10 +276,9 @@
             [remaining (rest (rest vals))])
         (cons (exactly (course-id dept number)) (group-list remaining)))))
 
-(: helps-student-core (-> student course-id Boolean))
-(define (helps-student-core stdnt crs)
-  (let ([courses (student-coursework stdnt)]
-        [req (curriculum-requirements (student-major stdnt))])
+(: helps-student-core (-> curriculum course-set course-id Boolean))
+(define (helps-student-core degree courses crs)
+  (let ([req (curriculum-requirements degree)])
     (< (get-remaining-count (set-add courses crs) req)
        (get-remaining-count courses req))))
 

@@ -43,11 +43,19 @@
    [te-needed : Integer])
   #:transparent)
 
+;; A string in cal poly quarter id format:
+;; 4 digits:
+;;     |century - 1800|
+;;     |year 10s|
+;;     |year 1s|
+;;     |quarter (2 for winter, 4 for spring, 6 for summer, 8 for fall)|
+(define-type Quarter Integer)
+
 ;; represents a single student
 (struct student
   ([id : String]
    [major : curriculum]
-   [coursework : course-set])
+   [coursework : (HashTable Quarter course-set)])
   #:transparent)
 
 (provide
@@ -79,4 +87,5 @@
  curriculum-name
  curriculum-requirements
  curriculum-te-calculator
- curriculum-te-needed)
+ curriculum-te-needed
+ Quarter)

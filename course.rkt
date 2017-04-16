@@ -26,6 +26,19 @@
 (define (course-number crs)
   (course-id-number (course-identifier crs)))
 
+;; Given a course identifier returns the cannonical identifier for the course
+;; referenced by that identifier
+(: cannonicalize-course (-> course-id course-id))
+(define cannonicalize-course
+  ;; TODO
+  identity)
+
+;; Gets the full course object from any of its identifiers
+(: get-course (-> course-id course))
+(define (get-course id)
+  ;; TODO
+  (error "Not yet implemented"))
+ 
 (module+ test
   (require typed/rackunit)
 
@@ -55,3 +68,9 @@
    (course-dept test-course-1)
    "CPE"))
 
+(provide
+ course-identifier
+ course-dept
+ course-number
+ get-course
+ cannonicalize-course)

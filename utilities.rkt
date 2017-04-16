@@ -1,7 +1,5 @@
 #lang typed/racket
 
-(require typed/rackunit)
-
 (: pair (All (A B) (-> A B (Pairof A B))))
 (define pair cons)
 
@@ -34,8 +32,46 @@
                 (first lst)
                 next)))))
 
-(check-equal? (smallest-set (list (set 0 1 2) (set 0 1) (set 0 1 2 3)))
-              (set 0 1))
+
+(: hash-retain-keys (All (A B) (-> (-> A Boolean) (HashTable A B) (HashTable A B))))
+(define (hash-retain-keys proc table)
+  (make-immutable-hash
+   (filter
+    (lambda ([x : (Pairof A B)])
+      (proc (left x)))
+    (hash->list table))))
+
+(: hash-retain-values (All (A B) (-> (-> B Boolean) (HashTable A B) (HashTable A B))))
+(define (hash-retain-values proc table)
+  (make-immutable-hash
+   (filter
+    (lambda ([x : (Pairof A B)])
+      (proc (right x)))
+    (hash->list table))))
+
+(module+ test
+  (require typed/rackunit)
+
+  (check-equal? (smallest-set (list (set 0 1 2) (set 0 1) (set 0 1 2 3)))
+                (set 0 1))
+
+  (check-equal?
+   (hash-retain-keys
+    (lambda ([x : Real]) (> x 1))
+    (hash 1 "one"
+          2 "two"
+          3 "three"))
+   (hash 2 "two"
+         3 "three"))
+  
+  (check-equal?
+   (hash-retain-values
+    (lambda ([x : Real]) (> x 1))
+    (hash "one" 1
+          "two" 2
+          "three" 3))
+   (hash "two" 2
+         "three" 3)))
 
 (provide
  pair
@@ -43,4 +79,6 @@
  right
  min-list
  sum-list
- smallest-set)
+ smallest-set
+ hash-retain-keys
+ hash-retain-values)
