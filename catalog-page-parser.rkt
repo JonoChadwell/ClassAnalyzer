@@ -1,15 +1,13 @@
 #lang racket
 
-;; sxml functions for parsing catalog html pages.
-
 (require html-parsing
-         sxml/sxpath)
+         sxml/sxpath
+         "types.rkt")
 
-(provide file->sxml
-         sxml->courses
-         course-title
-         course-prereqs
-         cross-listing-info)
+;; this file mostly lifted from Dr. Clement's web scraper
+
+;; TODO!!!!: Change prerequisite parsing to determing prereq type (one of / all of).
+;; for now, it is assumed you need ALL mentioned prerequisites
 
 ;; convert a file to sxml
 (define (file->sxml file)
@@ -23,26 +21,44 @@
 (define courseblock-sxpath
   "//div[@class='courses']/div[@class='courseblock']")
 
-;; given a course sxml block, return the course title as e.g.
-;; '("CSC" "344" "Music Programming")
-(define (course-title sxml)
-    (match ((sxpath coursetitle-sxpath) sxml)
-      [(list (list 'strong
-                   dept
-                   (list '& 'nbsp)
-                   (regexp #px"^([0-9]+)\\. (.*)\\.\n"  (list _
-                                                             num
-                                                             descr))
-                   _ ...))
-       (list dept num descr)]
-      ['()
-       (raise-argument-error
-        'course-title
-        "sxml for a course containing courseblocktitle paragraphs"
-        0 sxml)]))
+;; Gets the information from the header of the xml representation of a course
+;; returns the list: department, number, name, units
+(define (parse-course-header sxml)
+  (match ((sxpath coursetitle-sxpath) sxml)
+    [(list (list 'strong
+                 (regexp #px"^([A-Z]+)\\W*([0-9]+)\\. (.*)\n" (list _ dept numb name))
+                 (list
+                  'span
+                  _
+                  ;; Picks the larger side of the unit range
+                  (regexp #px"^[0-9]+-([0-9]+)" (list _ units)))
+                 _ ...)
+           _ ...)
+     (list dept numb name (string->number units))]
+    [(list (list 'strong
+                 (regexp #px"^([A-Z]+)\\W*([0-9]+)\\. (.*)\n" (list _ dept numb name))
+                 (list
+                  'span
+                  _
+                  (regexp #px"^([0-9]+)" (list _ units)))
+                 _ ...)
+           _ ...)
+     (list dept numb name (string->number units))] ; (list dept num descr)]
+    ['()
+     (raise-argument-error
+      'course-title
+      "Could not find course information"
+      0 sxml)]))
 
 (define coursetitle-sxpath
   "//p[@class='courseblocktitle']/strong")
+
+;; given a list of 2 element lists of string, builds a list
+;; of course-ids for the strings
+(define (map-to-course-ids lst)
+  (map (lambda (x)
+         (course-id (first x) (second x)))
+       lst))
 
 ;; given a crosslistings table and
 ;; sxml for a course, return the course's prerequisites
@@ -56,9 +72,8 @@
      all-paras))
   (match prereq-paras
     [(list p)
-     (extract-prereq-from-para p)]
-    [(list) #f]))
-
+     (map-to-course-ids (second (extract-prereq-from-para p)))]
+    [(list) empty]))
 
 ;; the prereq paragraph can contain any of three separate
 ;; sections: prerequisites, corequisites, and recommended.
@@ -85,8 +100,6 @@
    (flatten-sxml-text (cons 'p prereq-elts))
    (map prereq-link->course links)))
 
-
-
 ;; given an sxml element, if it is a string containing one
 ;; of the prereq-ending words (such as "Corequisite"), return
 ;; a list containing the part of the string before the word.
@@ -102,12 +115,10 @@
 (define (prereq-link->course sxml)
   (match sxml
     [(list 'a (list '@ _ ... (list 'title
-                                   (regexp #px"^(.*)&nbsp;(.*)$"
-                                           (list _ dept num)))
+                                   (regexp #px"^(.*)&(#[^;]*|nbsp);(.*)$"
+                                           (list _ dept _ num)))
                     _ ...) _ ...)
      (list dept num)]))
-
-
 
 ;; given an sxml element, flatten out the text.
 (define (flatten-sxml-text sxml)
@@ -121,8 +132,6 @@
     [other
      (error 'flatten-sxml-text "unexpected sxml text: ~e"
             sxml)]))
-
-
 
 ;; find the cross-listing information associated with a course
 (define (cross-listing-info sxml)
@@ -141,17 +150,46 @@
 ;; of the associated courses
 (define (crosslisted-text->course-list text)
   (match (string-trim text)
-    [(regexp #px"^([A-Z]+)/([A-Z]+) ([0-9]+)$" (list _ pre1 pre2 num))
+    [(regexp #px"^([A-Z]+)/([A-Z]+)\\W*([0-9]+)$" (list _ pre1 pre2 num))
      `((,pre1 ,num) (,pre2 ,num))]
-    [(regexp #px"^([A-Z]+) ([0-9]+)/([A-Z]+) ([0-9]+)$"
+    [(regexp #px"^([A-Z]+)/([A-Z]+)/([A-Z]+)\\W*([0-9]+)$" (list _ pre1 pre2 pre3 num))
+     `((,pre1 ,num) (,pre2 ,num) (,pre3 ,num))]
+    [(regexp #px"^([A-Z]+)/([A-Z]+)/([A-Z]+)/([A-Z]+)/([A-Z]+)/([A-Z]+)/([A-Z]+)\\W*([0-9]+)$"
+             (list _ pre1 pre2 pre3 pre4 pre5 pre6 pre7 num))
+     `((,pre1 ,num) (,pre2 ,num) (,pre3 ,num) (,pre4 ,num) (,pre5 ,num) (,pre6 ,num) (,pre7 ,num))]
+    [(regexp #px"^([A-Z]+)\\W*([0-9]+)/([A-Z]+)\\W*([0-9]+)$"
              (list _ pre1 num1 pre2 num2))
      `((,pre1 ,num1) (,pre2 ,num2))]
-    [(regexp #px"^([A-Z]+) ([0-9]+)/([A-Z]+) ([0-9]+)/([A-Z]+) ([0-9]+)$"
+    [(regexp #px"^([A-Z]+)\\W*([0-9]+)/([A-Z]+)\\W*([0-9]+)/([A-Z]+)\\W*([0-9]+)$"
              (list _ pre1 num1 pre2 num2 pre3 num3))
      `((,pre1 ,num1) (,pre2 ,num2) (,pre3 ,num3))]
     [other (error 'cross-listing-info
                   "unexpected text: ~e"
                   other)]))
+
+;; gets the set of all identifiers for a sxml representation of a course
+(define (get-all-names sxml primary-id)
+  (let ([crosslistings (cross-listing-info sxml)])
+    (if crosslistings
+        (foldl (lambda (a b) (set-add b a)) (set primary-id) (map-to-course-ids crosslistings))
+        (set primary-id))))
+
+;; Converts from an xml representation of a course to a course struct
+(define (parse-course sxml)
+  (let* ([header (parse-course-header sxml)]
+         [dept (first header)]
+         [numb (second header)]
+         [name (third header)]
+         [units (fourth header)]
+         [primary-id (course-id dept numb)]
+         [all-ids (get-all-names sxml primary-id)]
+         [prereqs (all-of (map exactly (course-prereqs sxml)))])
+    (course all-ids units name prereqs)))
+
+(define (read-courses-from-file filename)
+  (map parse-course (sxml->courses (file->sxml filename))))
+
+(provide read-courses-from-file)
 
 (module+ test
   (require rackunit)
@@ -164,53 +202,7 @@
                 '(("CPE" "441") ("EE" "431")))
   (check-equal? (crosslisted-text->course-list "CPE 488/IME 458/MATE 458")
                 '(("CPE" "488") ("IME" "458") ("MATE" "458")))
-  
-  
-  (check-equal?
-   (extract-prereq-from-para
-   '(p
-     "Prerequisite: "
-     (a
-      (@
-       (href
-        "http://catalog.calpoly.edu/search/?P=MATH%20118")
-       (title "MATH&nbsp;118")
-       (class "bubblelink code")
-       (onclick "return showCourse(this, 'MATH 118');"))
-      "MATH"
-      (& nbsp)
-      "118")
-     "\n"
-     " (or equivalent) with a grade of C- or better, significant experience in\n"
-     " computer programming, and consent of instructor. Corequisite: CSC 141 \n"
-     "or "
-     (a
-      (@
-       (href "http://catalog.calpoly.edu/search/?P=CSC%20348")
-       (title "CSC&nbsp;348")
-       (class "bubblelink code")
-       (onclick "return showCourse(this, 'CSC 348');"))
-      "CSC"
-      (& nbsp)
-      "348")
-     "."))
-   (list "Prerequisite: MATH 118\n (or equivalent) with a grade of C- \
-or better, significant experience in\n computer programming, and \
-consent of instructor. "
-         (list (list "MATH" "118"))))
 
   (check-equal?
-   (flatten-sxml-text
-    '(p
-      "Prerequisite: CSC/"
-      (a
-       (@
-        (href "http://catalog.calpoly.edu/search/?P=CPE%20103")
-        (title "CPE&nbsp;103")
-        (class "bubblelink code")
-        (onclick "return showCourse(this, 'CPE 103');"))
-       "CPE"
-       (& nbsp)
-       "103")
-      ", with a grade of C- or better, or equivalent."))
-   "Prerequisite: CSC/CPE 103, with a grade of C- or better, or equivalent."))
+   (map-to-course-ids '(("CSC" "101") ("CSC" "102")))
+   (list (course-id "CSC" "101") (course-id "CSC" "102"))))
