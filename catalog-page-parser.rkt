@@ -60,8 +60,7 @@
          (course-id (first x) (second x)))
        lst))
 
-;; given a crosslistings table and
-;; sxml for a course, return the course's prerequisites
+;; given sxml for a course, return the course's prerequisites
 (define (course-prereqs sxml)
   (define all-paras ((sxpath "//p") sxml))
   (define prereq-paras
@@ -119,6 +118,31 @@
                                            (list _ dept _ num)))
                     _ ...) _ ...)
      (list dept num)]))
+
+;; get the terms a course is offered from the description
+(define (course-terms-offered sxml)
+  (append-map (lambda (element)
+                (match element
+                  [(list 'p _ (regexp #px"^Term Typically Offered:(.*)" (list _ offerings)))
+                   (parse-terms-offered offerings)]
+                  [else
+                   empty]))
+              ((sxpath "//p") sxml)))
+
+;; given terms offered text, produce a list of Terms
+(define (parse-terms-offered str)
+  (let ([trimmed (string-trim str)])
+    (if (equal? "TBD" trimmed)
+        empty
+        (let ([parts (map string-trim (string-split trimmed ","))])
+          (map (lambda (part)
+                 (cond
+                   [(equal? part "F") 'FALL]
+                   [(equal? part "W") 'WINTER]
+                   [(equal? part "SP") 'SPRING]
+                   [(equal? part "SU") 'SUMMER]
+                   [else (error (string-append "Course offered in unknown term: '" part "'"))]))
+               parts)))))
 
 ;; given an sxml element, flatten out the text.
 (define (flatten-sxml-text sxml)
@@ -183,8 +207,9 @@
          [units (fourth header)]
          [primary-id (course-id dept numb)]
          [all-ids (get-all-names sxml primary-id)]
+         [terms (list->set (course-terms-offered sxml))]
          [prereqs (all-of (map exactly (course-prereqs sxml)))])
-    (course all-ids units name prereqs)))
+    (course all-ids terms units name prereqs)))
 
 (define (read-courses-from-file filename)
   (map parse-course (sxml->courses (file->sxml filename))))
@@ -202,6 +227,10 @@
                 '(("CPE" "441") ("EE" "431")))
   (check-equal? (crosslisted-text->course-list "CPE 488/IME 458/MATE 458")
                 '(("CPE" "488") ("IME" "458") ("MATE" "458")))
+
+  (check-equal? (parse-terms-offered " F, W, SU") '(FALL WINTER SUMMER))
+
+  (check-equal? (parse-terms-offered " TBD  ") '())
 
   (check-equal?
    (map-to-course-ids '(("CSC" "101") ("CSC" "102")))

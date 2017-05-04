@@ -13,6 +13,7 @@
 ;; (for now).
 (struct course
   ([identifiers : (Setof course-id)]
+   [typical-terms : (Setof Term)]
    [units : Integer]
    [name : String]
    [prereqs : Requirement])
@@ -43,7 +44,7 @@
    [te-needed : Integer])
   #:transparent)
 
-;; A string in cal poly quarter id format:
+;; An Integer in cal poly quarter id format:
 ;; 4 digits:
 ;;     |century - 1800|
 ;;     |year 10s|
@@ -51,12 +52,30 @@
 ;;     |quarter (2 for winter, 4 for spring, 6 for summer, 8 for fall)|
 (define-type Quarter Integer)
 
+(define-type Term (U 'WINTER 'SPRING 'SUMMER 'FALL))
+
+(: quarter->term (-> Quarter Term))
+(define (quarter->term qtr)
+  (cond
+    [(= (modulo qtr 10) 2) 'WINTER]
+    [(= (modulo qtr 10) 4) 'SPRING]
+    [(= (modulo qtr 10) 6) 'SUMMER]
+    [(= (modulo qtr 10) 8) 'FALL]
+    [else (error "Invalid quarter")]))
+
 ;; represents a single student
 (struct student
   ([id : String]
    [major : curriculum]
    [coursework : (HashTable Quarter course-set)])
   #:transparent)
+
+(module+ test
+  (require typed/rackunit)
+
+  (check-equal? (quarter->term 2172) 'WINTER)
+  (check-equal? (quarter->term 2154) 'SPRING)
+  (check-equal? (quarter->term 2168) 'FALL))
 
 (provide
  exactly
@@ -88,4 +107,7 @@
  curriculum-requirements
  curriculum-te-calculator
  curriculum-te-needed
- Quarter)
+ Quarter
+ Term
+ quarter->term)
+

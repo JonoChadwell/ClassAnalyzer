@@ -32,15 +32,20 @@
 ;; Given a course identifier returns the cannonical identifier for the course
 ;; referenced by that identifier
 (: cannonicalize-course (-> course-id course-id))
-(define cannonicalize-course
-  ;; TODO
-  identity)
+(define (cannonicalize-course id)
+  (course-identifier (get-course id)))
 
 ;; Gets the full course object from any of its identifiers
 (: get-course (-> course-id course))
 (define (get-course id)
-  ;; TODO
-  (error "Not yet implemented"))
+  (hash-ref course-id-table id
+            (lambda ()
+              (course
+               (set id)
+               (set)
+               0
+               "Unlisted Course"
+               empty-requirement))))
 
 (define department-list
   '("aero" "agb" "aeps" "agc" "aged" "ag" "asci" "ant" "arce" "arch" "art"
@@ -82,6 +87,7 @@
             (lambda ()
               (course
                (set id)
+               (set)
                0
                "Unlisted Course"
                empty-requirement))))
@@ -89,16 +95,6 @@
 (: course-id->string (-> course-id String))
 (define (course-id->string id)
   (string-append (course-id-dept id) "_" (course-id-number id)))
-
-(provide
- course-identifier
- course-dept
- course-number
- get-course
- cannonicalize-course
- all-courses
- course-id->course
- course-id->string)
 
 (module+ test
   (require typed/rackunit)
@@ -109,6 +105,7 @@
   (define test-course-1
     (course
      (set test-id-1 test-id-2)
+     (set)
      4
      "Systems Programming"
      (all-of (list
@@ -128,3 +125,13 @@
   (check-equal?
    (course-dept test-course-1)
    "CPE"))
+
+(provide
+ course-identifier
+ course-dept
+ course-number
+ get-course
+ cannonicalize-course
+ all-courses
+ course-id->course
+ course-id->string)
