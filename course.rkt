@@ -1,6 +1,6 @@
 #lang typed/racket
 
-(require "types.rkt" "quarter.rkt")
+(require "types.rkt" "quarter.rkt" "utilities.rkt")
 
 (require/typed  "catalog-page-parser.rkt"
                 [read-courses-from-file (-> String (Listof course))])
@@ -88,6 +88,19 @@
        (set->list (course-identifiers crs))))
     lst))
  (reverse all-courses))
+
+;; Cannonicalize all prerequisistes
+(for-each
+ (lambda ([pr : (Pairof course-id course)])
+   (hash-set! course-id-table
+              (left pr)
+              (course
+               (course-identifiers (right pr))
+               (course-typical-terms (right pr))
+               (course-units (right pr))
+               (course-name (right pr))
+               (cannonicalize-req (course-prereqs (right pr))))))
+ (hash->list course-id-table))
 
 (: course-id->course (-> course-id course))
 (define (course-id->course id)

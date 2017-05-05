@@ -35,7 +35,7 @@
           (set-member? (student-enrolled-classes stdnt) considered-course))
         student-list))))
    (hash-keys important-courses)))
-
+#|
 ;; Course completion
 (define courses-completed-data
   (map
@@ -148,9 +148,27 @@
 (plot-width 800)
 
 ;; (do-plot)
-
+|#
 ;; creates pairings between student id and earliest potential graduation date
 (define (process-grad-info stdnt)
   (pair
    (student-id stdnt)
-   (minimum-graduation-quarter (student-current-classes stdnt) (student-major stdnt) 2172)))
+   (minimum-graduation-quarter (student-current-classes stdnt)
+                               (student-major stdnt)
+                               2172)))
+
+(define (get-schedule stdnt)
+  (pair
+   (student-id stdnt)
+   (get-proposed-schedule (student-current-classes stdnt)
+                          (student-major stdnt)
+                          2172)))
+
+(define (get-student emplid)
+    (let ([matching-students (filter (lambda (stdnt) (equal? (student-id stdnt) emplid)) student-list)])
+      (if (= (length matching-students) 1)
+          (first matching-students)
+          (error "Non unique empl id"))))
+
+(define (dotest stdnt)
+    (build-course-trees 2172 (curriculum-requirements (student-major stdnt)) (student-current-classes stdnt)))

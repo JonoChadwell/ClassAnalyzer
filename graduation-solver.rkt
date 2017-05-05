@@ -26,6 +26,10 @@
                                          (curriculum-requirements major)
                                          courses))))
 
+(: get-proposed-schedule (-> course-set curriculum Quarter (HashTable Quarter course-set)))
+(define (get-proposed-schedule courses major qtr)
+  (pack-classes qtr (build-course-trees qtr (curriculum-requirements major) courses)))
+
 ;; Returns a set of course trees a student could use to graduate, favoring subtrees
 ;; which can be completed sooner.
 (: build-course-trees (-> Quarter Requirement course-set (Listof course-tree)))
@@ -53,8 +57,6 @@
       (lambda ([x : Requirement])
         (build-course-trees qtr x courses))
       (all-of-reqs req))]))
-            
-
 
 ;; Returns the earliest possible quarter in which the top class in the tree can be taken
 (: tree-complete-quarter (-> Quarter course-tree Quarter))
@@ -173,9 +175,9 @@
 ;; packs all classes into a schedule attempting to produce a schedule that
 ;; finishes all courses as soon as possible. Does not respect petty human limits
 ;; such as 16 units per quarter (these will be added in later)
-(: pack-classes (-> Quarter (Setof course-tree) (HashTable Quarter course-set)))
+(: pack-classes (-> Quarter (Listof course-tree) (HashTable Quarter course-set)))
 (define (pack-classes qtr trees)
-  (foldl combine-schedules emptyschedule (map (curry pack-course-tree qtr) (set->list trees))))
+  (foldl combine-schedules emptyschedule (map (curry pack-course-tree qtr) trees)))
 
 (module+ test
 
@@ -268,4 +270,9 @@
   )
 
 (provide
- minimum-graduation-quarter)
+ minimum-graduation-quarter
+ get-proposed-schedule
+ course-tree
+ course-tree-crs
+ course-tree-children
+ build-course-trees)
