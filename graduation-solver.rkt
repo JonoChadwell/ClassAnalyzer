@@ -84,7 +84,7 @@
 (: slowest-tree (-> Quarter (Listof course-tree) course-tree))
 (define (slowest-tree qtr trees)
   (cond
-    [(empty? trees) (error "no quickest tree in empty list")]
+    [(empty? trees) (error "no slowest tree in empty list")]
     [(empty? (rest trees)) (first trees)]
     [else
      (let ([current (first trees)]
@@ -100,13 +100,13 @@
     [(empty? tree-lists) (error "no quickest list of trees in empty list")]
     [(empty? (rest tree-lists)) (first tree-lists)]
     [else
-     (let ([current (first tree-lists)])
-       (if (empty? current)
+     (let ([current (first tree-lists)]
+           [best (quickest-trees qtr (rest tree-lists))])
+       (if (or (empty? current) (empty? best))
            empty
-           (let ([best (quickest-trees qtr (rest tree-lists))])
-             (if (< (tree-complete-quarter qtr (slowest-tree qtr current)) (tree-complete-quarter qtr (slowest-tree qtr best)))
-                 current
-                 best))))]))
+           (if (< (tree-complete-quarter qtr (slowest-tree qtr current)) (tree-complete-quarter qtr (slowest-tree qtr best)))
+               current
+               best)))]))
 
 (: combine-schedules (-> (HashTable Quarter course-set) (HashTable Quarter course-set) (HashTable Quarter course-set)))
 (define (combine-schedules a b)

@@ -10,6 +10,7 @@
   "types.rkt"
   "course.rkt"
   "units.rkt"
+  "graduation-solver.rkt"
   plot)
 
 (define quarter-to-analyze 2178)
@@ -147,3 +148,9 @@
 (plot-width 800)
 
 ;; (do-plot)
+
+;; creates pairings between student id and earliest potential graduation date
+(define (process-grad-info stdnt)
+  (pair
+   (student-id stdnt)
+   (minimum-graduation-quarter (student-current-classes stdnt) (student-major stdnt) 2172)))
