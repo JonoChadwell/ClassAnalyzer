@@ -90,7 +90,7 @@
 ;; checks whether a course is a valid core tech-elective
 (define (valid-te crs)
   (or
-   (member
+   (list-contains
     crs
     (list
      (course-id "CE" "356")
@@ -101,7 +101,7 @@
             (eq? (course-id-dept crs) "CE"))
         (and (> (string->number (course-id-number crs)) 400)
              (not
-              (member
+              (list-contains
                crs
                (list
                 (course-id "CE" "465")
@@ -163,7 +163,7 @@
          (set->list courses)))))
 
 (define (count-total-te-units courses)
-  (+ (count-te-limited-units courses) (count-te-non-limited-units)))
+  (+ (count-te-limited-units courses) (count-te-non-limited-units courses)))
 
 (define needed-te-units 24)
 

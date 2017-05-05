@@ -54,28 +54,12 @@
 
 (define-type Term (U 'WINTER 'SPRING 'SUMMER 'FALL))
 
-(: quarter->term (-> Quarter Term))
-(define (quarter->term qtr)
-  (cond
-    [(= (modulo qtr 10) 2) 'WINTER]
-    [(= (modulo qtr 10) 4) 'SPRING]
-    [(= (modulo qtr 10) 6) 'SUMMER]
-    [(= (modulo qtr 10) 8) 'FALL]
-    [else (error "Invalid quarter")]))
-
 ;; represents a single student
 (struct student
   ([id : String]
    [major : curriculum]
    [coursework : (HashTable Quarter course-set)])
   #:transparent)
-
-(module+ test
-  (require typed/rackunit)
-
-  (check-equal? (quarter->term 2172) 'WINTER)
-  (check-equal? (quarter->term 2154) 'SPRING)
-  (check-equal? (quarter->term 2168) 'FALL))
 
 (provide
  exactly
@@ -98,6 +82,7 @@
  course-name
  course-prereqs
  course-set
+ course-typical-terms
  student
  student-id
  student-major
@@ -108,6 +93,5 @@
  curriculum-te-calculator
  curriculum-te-needed
  Quarter
- Term
- quarter->term)
+ Term)
 

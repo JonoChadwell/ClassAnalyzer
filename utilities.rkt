@@ -15,6 +15,12 @@
       (error "Empty list has no minimum element")
       (foldl min (first lst) (rest lst))))
 
+(: max-list (-> (Listof Integer) Integer))
+(define (max-list lst)
+  (if (empty? lst)
+      (error "Empty list has no minimum element")
+      (foldl max (first lst) (rest lst))))
+
 (: sum-list (-> (Listof Integer) Integer))
 (define (sum-list lst)
   (if (empty? lst)
@@ -49,8 +55,16 @@
       (proc (right x)))
     (hash->list table))))
 
+(: list-contains (All (A) (-> A (Listof A) Boolean)))
+(define (list-contains val lst)
+  (if (member val lst)
+      #t
+      #f))
+
 (module+ test
   (require typed/rackunit)
+
+  (check-equal? (max-list '(1 2 3 6 5)) 6)
 
   (check-equal? (smallest-set (list (set 0 1 2) (set 0 1) (set 0 1 2 3)))
                 (set 0 1))
@@ -78,7 +92,9 @@
  left
  right
  min-list
+ max-list
  sum-list
  smallest-set
  hash-retain-keys
- hash-retain-values)
+ hash-retain-values
+ list-contains)

@@ -2,7 +2,8 @@
 
 (require html-parsing
          sxml/sxpath
-         "types.rkt")
+         "types.rkt"
+         "prereq-overrides.rkt")
 
 ;; this file mostly lifted from Dr. Clement's web scraper
 
@@ -198,6 +199,15 @@
         (foldl (lambda (a b) (set-add b a)) (set primary-id) (map-to-course-ids crosslistings))
         (set primary-id))))
 
+;; gets the override prerequisites for a course
+(define (get-override-prereqs id-list)
+  (if (empty? id-list)
+      #f
+      (let ([override (hash-ref prereq-override-map (first id-list) (lambda () #f))])
+        (if override
+            override
+            (get-override-prereqs (rest id-list))))))
+
 ;; Converts from an xml representation of a course to a course struct
 (define (parse-course sxml)
   (let* ([header (parse-course-header sxml)]
@@ -208,7 +218,9 @@
          [primary-id (course-id dept numb)]
          [all-ids (get-all-names sxml primary-id)]
          [terms (list->set (course-terms-offered sxml))]
-         [prereqs (all-of (map exactly (course-prereqs sxml)))])
+         [override-prereqs (get-override-prereqs (set->list all-ids))]
+         [parsed-prereqs (all-of (map exactly (course-prereqs sxml)))]
+         [prereqs (if override-prereqs override-prereqs parsed-prereqs)])
     (course all-ids terms units name prereqs)))
 
 (define (read-courses-from-file filename)

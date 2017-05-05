@@ -1,6 +1,6 @@
 #lang typed/racket
 
-(require "types.rkt")
+(require "types.rkt" "quarter.rkt")
 
 (require/typed  "catalog-page-parser.rkt"
                 [read-courses-from-file (-> String (Listof course))])
@@ -34,6 +34,14 @@
 (: cannonicalize-course (-> course-id course-id))
 (define (cannonicalize-course id)
   (course-identifier (get-course id)))
+
+;; cannonicalizes all parts of a requirement
+(: cannonicalize-req (-> Requirement Requirement))
+(define (cannonicalize-req req)
+  (cond
+    [(exactly? req) (exactly (cannonicalize-course (exactly-take req)))]
+    [(all-of? req) (all-of (map cannonicalize-req (all-of-reqs req)))]
+    [(one-of? req) (one-of (map cannonicalize-req (one-of-reqs req)))]))
 
 ;; Gets the full course object from any of its identifiers
 (: get-course (-> course-id course))
@@ -96,6 +104,19 @@
 (define (course-id->string id)
   (string-append (course-id-dept id) "_" (course-id-number id)))
 
+;; Given a course id and the earliest possible quarter, returns the next
+;; quarter that a course will be offered.
+(: course-next-offered (-> course-id Quarter Quarter))
+(define (course-next-offered id qtr)
+  (let ([terms-offered (course-typical-terms (course-id->course id))]
+        [next-qtr (quarter-after qtr)])
+    (if (set-empty? terms-offered)
+        ;; assume TBD courses will be offered within a year
+        (+ qtr 10)
+        (if (set-member? terms-offered (quarter->term qtr))
+            qtr
+            (course-next-offered id next-qtr)))))
+
 (module+ test
   (require typed/rackunit)
 
@@ -127,11 +148,14 @@
    "CPE"))
 
 (provide
+ course-id-table
  course-identifier
  course-dept
  course-number
  get-course
  cannonicalize-course
  all-courses
+ course-next-offered
  course-id->course
- course-id->string)
+ course-id->string
+ cannonicalize-req)
