@@ -1,24 +1,33 @@
 #lang typed/racket
 
-(require racket/set "types.rkt" "utilities.rkt" "course.rkt")
+(require racket/set "types.rkt" "utilities.rkt" "course.rkt" "requirement.rkt")
 
 (: get-num-units (-> course-id Integer))
-(define (get-num-units id)
-  (course-units (course-id->course id)))
+(define (get-num-units crs)
+  (course-units (course-id->course crs)))
 
-(provide get-num-units)
+(: get-min-core-units (-> course-set Requirement Integer))
+(define (get-min-core-units courses req)
+  (get-minimum-cost-to-satisfy
+   get-num-units
+   courses
+   req))
 
 (module+ test
-  (require typed/rackunit)
+  (require typed/rackunit "test-data.rkt")
 
   (check-equal?
-   (get-num-units (course-id "CSC" "101"))
+   (get-num-units FAKE_101)
    4)
   
   (check-equal?
-   (get-num-units (course-id "CE" "406"))
-   5)
+   (get-num-units FAKE_102)
+   4)
 
   (check-equal?
-   (get-num-units (course-id "CE" "440"))
-   4))
+   (get-num-units FAKE_250)
+   4)
+
+  (check-equal?
+   (get-min-core-units (set FAKE_101) FAKE_ENGINEERING_REQ)
+   20))

@@ -68,8 +68,19 @@
        (set->list x))))
    12))
 
+(define FAKE_STUDENT_1
+  (student
+   "12344321"
+   FAKE_ENGINEERING
+   (hash
+    2002 (set FAKE_101)
+    2004 (set FAKE_102)
+    2008 (set FAKE_151))))
+
 (provide FAKE_101
          FAKE_102
          FAKE_151
+         FAKE_250
          FAKE_ENGINEERING_REQ
-         FAKE_ENGINEERING)
+         FAKE_ENGINEERING
+         FAKE_STUDENT_1)

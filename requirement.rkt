@@ -1,6 +1,6 @@
 #lang typed/racket
 
-(require "utilities.rkt" "types.rkt" "student.rkt" racket/set racket/struct)
+(require "utilities.rkt" "types.rkt" racket/set racket/struct)
 
 ;; checks whether a course-set meets a requirement
 (: meets (-> course-set Requirement Boolean))
@@ -157,36 +157,41 @@
 
 ;; gets the minimum number of classes a student has yet to take to satisfy a requirement
 ;; req must contain no duplicated courses
-(: get-remaining-count-deduped (-> course-set Requirement Integer))
-(define (get-remaining-count-deduped courses req)
+(: get-minimum-cost-to-satisfy-deduped (-> (-> course-id Integer) course-set Requirement Integer))
+(define (get-minimum-cost-to-satisfy-deduped cost courses req)
   (cond
     [(exactly? req)
      (if (set-member? courses (exactly-take req))
          0
-         1)]
+         (cost (exactly-take req)))]
     [(one-of? req)
      (let ([reqs (one-of-reqs req)])
        (min-list
         (map
-         (lambda ([r : Requirement]) (get-remaining-count-deduped courses r))
+         (lambda ([r : Requirement]) (get-minimum-cost-to-satisfy-deduped cost courses r))
          reqs)))]
     [(all-of? req)
      (let ([reqs (all-of-reqs req)])
        (sum-list
         (map
-         (lambda ([r : Requirement]) (get-remaining-count-deduped courses r))
+         (lambda ([r : Requirement]) (get-minimum-cost-to-satisfy-deduped cost courses r))
          reqs)))]))
 
 ;; gets the minimum number of classes a student has yet to take to satisfy a requirement
-(: get-remaining-count (-> course-set Requirement Integer))
-(define (get-remaining-count courses req)
+(: get-minimum-cost-to-satisfy (-> (-> course-id Integer) course-set Requirement Integer))
+(define (get-minimum-cost-to-satisfy cost courses req)
   (let* ([result (deduplicate-courses courses req)]
          [possible-courses (left result)]
          [new-req (right result)])
     (min-list (map
                (lambda ([courses : course-set])
-                 (get-remaining-count-deduped courses new-req))
+                 (get-minimum-cost-to-satisfy-deduped cost courses new-req))
                possible-courses))))
+
+;; gets the minimum number of classes a student has yet to take to satisfy a requirement
+(: get-remaining-count (-> course-set Requirement Integer))
+(define (get-remaining-count courses req)
+  (get-minimum-cost-to-satisfy (lambda ([x : course-id]) 1) courses req))
 
 ;; returns every possible way to satisfy a requirement
 (: get-all-options (-> Requirement (Listof course-set)))
@@ -557,5 +562,6 @@
  explode-courses
  deduplicate-courses
  get-remaining-count
+ get-minimum-cost-to-satisfy
  get-class-counts
  helps-student-core)

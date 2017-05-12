@@ -11,11 +11,13 @@
   "course.rkt"
   "units.rkt"
   "graduation-solver.rkt"
+  "quarter.rkt"
   plot)
 
-(define quarter-to-analyze 2178)
+(define current-quarter 2174)
+(define next-quarter 2178)
 
-(define student-list (get-students-from-file "data/no-names-ce-grade-data.csv" bs-civil-15-17))
+(define student-list (get-students-from-file "data/foo.csv" bs-civil-15-17))
 
 (define (get-matching-students courses req)
   (filter (lambda (x) (meets x req)) courses))
@@ -50,7 +52,7 @@
    (hash-keys important-courses)))
 
 (define (student-courses stdnt)
-  (hash-ref (student-coursework stdnt) quarter-to-analyze (lambda () (set))))
+  (hash-ref (student-coursework stdnt) next-quarter (lambda () (set))))
 
 (define (student-units stdnt)
   (let ([classes (student-courses stdnt)])
@@ -153,9 +155,7 @@
 (define (process-grad-info stdnt)
   (pair
    (student-id stdnt)
-   (minimum-graduation-quarter (student-current-classes stdnt)
-                               (student-major stdnt)
-                               2172)))
+   (minimum-graduation-quarter (student-current-classes stdnt) (student-major stdnt) current-quarter)))
 
 (define (get-schedule stdnt)
   (pair
@@ -172,3 +172,16 @@
 
 (define (dotest stdnt)
     (build-course-trees 2172 (curriculum-requirements (student-major stdnt)) (student-current-classes stdnt)))
+
+(define (check-classes stdnt)
+  (pair
+   (student-id stdnt)
+   (let ([grad-quarter-before (minimum-graduation-quarter (student-courses-before stdnt current-quarter)
+                                                      (student-major stdnt)
+                                                      current-quarter)]
+         [grad-quarter-after (minimum-graduation-quarter (student-courses-before stdnt next-quarter)
+                                                      (student-major stdnt)
+                                                      next-quarter)])
+     (if (< grad-quarter-before grad-quarter-after)
+         "Possible problem"
+         "Okay"))))
