@@ -13,6 +13,10 @@
    courses
    req))
 
+(provide
+ get-num-units
+ get-min-core-units)
+
 (module+ test
   (require typed/rackunit "test-data.rkt")
 

@@ -6,6 +6,7 @@
   "utilities.rkt"
   "civil-program.rkt"
   "csv-reader.rkt"
+  "csv-writer.rkt"
   "student.rkt"
   "types.rkt"
   "course.rkt"
@@ -185,3 +186,31 @@
      (if (< grad-quarter-before grad-quarter-after)
          "Possible problem"
          "Okay"))))
+
+; Turns a course into a list of strings representing info about the course
+(define (stringify-course crs)
+  (list
+   (course-id-dept (course-identifier crs))
+   (course-id-number (course-identifier crs))
+   (course-name crs)
+   (number->string (course-units crs))))
+   
+
+; Writes a bunch of courses to a file
+(define (write-courses-to-file courses file-name)
+  (write-csv
+   file-name
+   (map
+    stringify-course
+    courses)))
+
+; Gets all courses within a department
+(define (get-courses-from-department dept)
+  (map
+   right
+   (filter
+    (lambda (x) (equal? (course-id-dept (left x)) dept))
+    (hash->list course-id-table))))
+
+(define (write-dept-courses-to-file dept file-name)
+  (write-courses-to-file (get-courses-from-department dept) file-name))

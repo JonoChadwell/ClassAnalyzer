@@ -167,7 +167,6 @@
  course-number
  get-course
  cannonicalize-course
- all-courses
  course-next-offered
  course-id->course
  course-id->string
