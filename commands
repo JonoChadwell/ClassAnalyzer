@@ -1,0 +1,2 @@
+# get SE classes from new csv format into old format
+grep -P "^SE" foo.csv | cut -d, -f2,3,4,5,8

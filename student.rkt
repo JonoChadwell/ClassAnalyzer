@@ -2,7 +2,7 @@
 
 (require "types.rkt" "utilities.rkt")
 
-(define current-quarter 2172)
+(define current-quarter 2174)
 
 (: accumulate (-> (HashTable Quarter (Setof course-id)) (Setof course-id)))
 (define (accumulate table)

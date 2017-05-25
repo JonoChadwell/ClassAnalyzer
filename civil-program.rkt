@@ -93,60 +93,63 @@
   (or
    (list-contains
     crs
-    (list
-     (course-id "CE" "356")
-     (course-id "CE" "371")
-     (course-id "CM" "371")
-     (course-id "ENVE" "325")))
+    (map cannonicalize-course 
+         (list
+          (course-id "CE" "356")
+          (course-id "CE" "371")
+          (course-id "CM" "371")
+          (course-id "ENVE" "325"))))
    (and (or (eq? (course-id-dept crs) "ENVE")
             (eq? (course-id-dept crs) "CE"))
         (and (> (string->number (course-id-number crs)) 400)
              (not
               (list-contains
                crs
-               (list
-                (course-id "CE" "465")
-                (course-id "CE" "466")
-                (course-id "CE" "467")
-                (course-id "CE" "468")
-                (course-id "CE" "469")
-                (course-id "CE" "404"))))))))
+               ((map cannonicalize-course 
+                     (list
+                      (course-id "CE" "465")
+                      (course-id "CE" "466")
+                      (course-id "CE" "467")
+                      (course-id "CE" "468")
+                      (course-id "CE" "469")
+                      (course-id "CE" "404"))))))))))
 
 ;; CE students can get credit for up to 4 units from these courses
 (define te-four-unit-max
-  (list
-   (course-id "ARCE" "305")
-   (course-id "ARCE" "372")
-   (course-id "ARCE" "403")
-   (course-id "BIO" "421")
-   (course-id "NR" "421")
-   (course-id "SS" "421")
-   (course-id "BMED" "404")
-   (course-id "CE" "404")
-   (course-id "ME" "404")
-   (course-id "BRAE" "345")
-   (course-id "BRAE" "447")
-   (course-id "BRAE" "532")
-   (course-id "CHEM" "341")
-   (course-id "CM" "334")
-   (course-id "CM" "432")
-   (course-id "CRP" "420")
-   (course-id "CRP" "435")
-   (course-id "CRP" "404")
-   (course-id "NR" "404")
-   (course-id "CRP" "408")
-   (course-id "NR" "408")
-   (course-id "ERSC" "401")
-   (course-id "GEOL" "401")
-   (course-id "ERSC" "402")
-   (course-id "GEOL" "402")
-   (course-id "GEOL" "415")
-   (course-id "IME" "314")
-   (course-id "MATE" "425")
-   (course-id "MATE" "450")
-   (course-id "MATH" "344")
-   (course-id "SS" "423")
-   (course-id "SS" "442")))
+  (map cannonicalize-course 
+       (list
+        (course-id "ARCE" "305")
+        (course-id "ARCE" "372")
+        (course-id "ARCE" "403")
+        (course-id "BIO" "421")
+        (course-id "NR" "421")
+        (course-id "SS" "421")
+        (course-id "BMED" "404")
+        (course-id "CE" "404")
+        (course-id "ME" "404")
+        (course-id "BRAE" "345")
+        (course-id "BRAE" "447")
+        (course-id "BRAE" "532")
+        (course-id "CHEM" "341")
+        (course-id "CM" "334")
+        (course-id "CM" "432")
+        (course-id "CRP" "420")
+        (course-id "CRP" "435")
+        (course-id "CRP" "404")
+        (course-id "NR" "404")
+        (course-id "CRP" "408")
+        (course-id "NR" "408")
+        (course-id "ERSC" "401")
+        (course-id "GEOL" "401")
+        (course-id "ERSC" "402")
+        (course-id "GEOL" "402")
+        (course-id "GEOL" "415")
+        (course-id "IME" "314")
+        (course-id "MATE" "425")
+        (course-id "MATE" "450")
+        (course-id "MATH" "344")
+        (course-id "SS" "423")
+        (course-id "SS" "442"))))
 
 (define (count-te-limited-units courses)
   (min 4

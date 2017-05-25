@@ -18,7 +18,10 @@
 (define current-quarter 2174)
 (define next-quarter 2178)
 
-(define student-list (get-students-from-file "data/foo.csv" bs-civil-15-17))
+(define student-list
+  (get-students-from-file
+   "data/2174-computing-major-grade-data.csv"
+   bs-civil-15-17))
 
 (define (get-matching-students courses req)
   (filter (lambda (x) (meets x req)) courses))
@@ -169,7 +172,7 @@
     (let ([matching-students (filter (lambda (stdnt) (equal? (student-id stdnt) emplid)) student-list)])
       (if (= (length matching-students) 1)
           (first matching-students)
-          (error "Non unique empl id"))))
+          (error "Student not found"))))
 
 (define (dotest stdnt)
     (build-course-trees 2172 (curriculum-requirements (student-major stdnt)) (student-current-classes stdnt)))
@@ -214,3 +217,10 @@
 
 (define (write-dept-courses-to-file dept file-name)
   (write-courses-to-file (get-courses-from-department dept) file-name))
+
+; Gets the number of students who have completed course
+(define (num-completed crs)
+  (length
+   (filter
+    (curryr set-member? (cannonicalize-course crs))
+    (map (curryr student-courses-before current-quarter) student-list))))
