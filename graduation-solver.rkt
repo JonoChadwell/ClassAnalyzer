@@ -18,6 +18,8 @@
 (define (course-tree-leaf crs)
   (course-tree crs empty))
 
+; Returns the minimum quarter in which a student can graduate with the given courses following the
+; given curriculum. Quarter should be the current quarter
 (: minimum-graduation-quarter (-> course-set curriculum Quarter Quarter))
 (define (minimum-graduation-quarter courses major qtr)
   (tree-complete-quarter

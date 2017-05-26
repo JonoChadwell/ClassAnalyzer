@@ -4,6 +4,7 @@
 
 (define prereq-override-map
   (hash
+   (course-id "ME" "211") (group-all "PHYS" "141" "MATH" "143")
    (course-id "CE" "111") (all-of empty)
    (course-id "CE" "112") (all-of empty) ;; leaving out calc 1 requirement because we don't have data for AP high school credit
    (course-id "CE" "113") (all-of empty)

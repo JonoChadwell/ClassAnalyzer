@@ -15,13 +15,7 @@
   "quarter.rkt"
   plot)
 
-(define current-quarter 2174)
-(define next-quarter 2178)
-
-(define student-list
-  (get-students-from-file
-   "data/2174-computing-major-grade-data.csv"
-   bs-civil-15-17))
+(define student-list (get-students-from-file "data/foo.csv" bs-civil-15-17))
 
 (define (get-matching-students courses req)
   (filter (lambda (x) (meets x req)) courses))
@@ -197,7 +191,6 @@
    (course-id-number (course-identifier crs))
    (course-name crs)
    (number->string (course-units crs))))
-   
 
 ; Writes a bunch of courses to a file
 (define (write-courses-to-file courses file-name)
@@ -224,3 +217,80 @@
    (filter
     (curryr set-member? (cannonicalize-course crs))
     (map (curryr student-courses-before current-quarter) student-list))))
+
+; Gets a short description for a course
+(define (get-short-description crs)
+  (string-append
+   (course-name crs)
+   "("
+   (course-id-dept (course-identifier crs))
+   " "
+   (course-id-number (course-identifier crs))
+   ")"))
+
+; Gets all students planning to take the given course next quarter
+(define (get-all-expected-students crs)
+  (filter
+   (lambda (stdnt) (set-member?
+                    (student-planned-classes stdnt)
+                    (course-identifier crs)))
+   student-list))
+
+; Describes the format of a row in the by-course output file
+(define student-rows-header
+  (list
+   "Student ID"
+   "Has Prereqs"
+   "Miss Cost (number of extra quarters a student will take if they don't get this course)"
+   "Already Taken (Y means the student has already completed this class)"))
+
+; Turns a student / course combo into a row in the by-course output file
+(define (get-student-course-info stdnt crs)
+  (list
+   (student-id stdnt)
+   (if (meets
+        (student-current-classes stdnt)
+        (course-prereqs crs))
+       "Y"
+       "N")
+   (let ([student-classes (set-union
+                           (student-current-classes stdnt)
+                           (student-planned-classes stdnt))])
+     (number->string
+      (quarter-difference
+       (minimum-graduation-quarter
+        student-classes (student-major stdnt) current-quarter)
+       (minimum-graduation-quarter
+        (set-remove student-classes (course-identifier crs)) (student-major stdnt) current-quarter))))
+   (if (set-member?
+        (student-current-classes stdnt)
+        (course-identifier crs))
+       "Y"
+       "N")))
+   
+
+; Gets a csv writable analysis of a course
+(define (get-course-analysis crs)
+  (cons
+   (list "course:" (get-short-description crs))
+   (cons
+    student-rows-header
+    (map
+     (curryr get-student-course-info crs)
+     (get-all-expected-students crs)))))
+
+; Generates an analysis file for the given course
+(define (generate-course-analysis-file crs)
+  (let ([analysis (get-course-analysis crs)])
+    (for-each
+     (lambda (crs-id)
+       (write-csv
+        (string-append (course-id-dept crs-id) "_" (course-id-number crs-id))
+        analysis))
+     (set->list (course-identifiers crs)))))
+
+; Generates an analysis file for each course offered by a department
+(define (generate-course-analysis-files dept)
+  (for-each
+   generate-course-analysis-file
+   (get-courses-from-department dept)))

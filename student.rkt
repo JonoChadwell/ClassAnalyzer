@@ -1,8 +1,6 @@
 #lang typed/racket
 
-(require "types.rkt" "utilities.rkt")
-
-(define current-quarter 2174)
+(require "types.rkt" "utilities.rkt" "quarter.rkt")
 
 (: accumulate (-> (HashTable Quarter (Setof course-id)) (Setof course-id)))
 (define (accumulate table)
@@ -36,13 +34,13 @@
       (<= x current-quarter))
     (student-coursework stdnt))))
 
-;; gets the courses a student is planning on taking
+;; gets the courses a student is planning on taking next quarter
 (: student-planned-classes (-> student course-set))
 (define (student-planned-classes stdnt)
   (accumulate
    (hash-retain-keys
     (lambda ([x : Quarter])
-      (> x current-quarter))
+      (eq? x next-quarter))
     (student-coursework stdnt))))
 
 ;; gets the courses which (following their current plan) a student will
@@ -85,7 +83,7 @@
       (- current-quarter 4) (set f101)
       (- current-quarter 2) (set f102)
       current-quarter (set f103)
-      (+ current-quarter 2) (set f104))))
+      (quarter-after current-quarter) (set f104))))
 
   (check-equal?
    (student-all-classes test-student-1)

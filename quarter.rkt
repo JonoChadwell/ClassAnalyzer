@@ -29,6 +29,11 @@
         [(equal? (quarter->term qtr) 'FALL) (+ qtr 4)]
         [else (error "This should be unreachable")]))
 
+
+(define current-quarter 2174)
+(define next-quarter (quarter-after current-quarter))
+
+
 (module+ test
   (require typed/rackunit)
 
@@ -44,5 +49,7 @@
 (provide
  quarter->term
  quarter-after
- quarter-difference)
+ quarter-difference
+ current-quarter
+ next-quarter)
  
