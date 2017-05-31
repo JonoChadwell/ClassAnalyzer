@@ -281,12 +281,6 @@
             [remaining (rest (rest vals))])
         (cons (exactly (course-id dept number)) (group-list remaining)))))
 
-(: helps-student-core (-> curriculum course-set course-id Boolean))
-(define (helps-student-core degree courses crs)
-  (let ([req (curriculum-requirements degree)])
-    (< (get-remaining-count (set-add courses crs) req)
-       (get-remaining-count courses req))))
-
 (module+ test
   (require typed/rackunit)
   
@@ -295,6 +289,30 @@
   (define CPE103 (course-id "CPE" "103"))
   (define CPE225 (course-id "CPE" "225"))
   (define CPE357 (course-id "CPE" "357"))
+
+  ;; meets tests
+  (check-true
+   (meets
+    (set CPE101)
+    (exactly CPE101)))
+  
+  (check-false
+   (meets
+    (set CPE101 CPE102 CPE225)
+    (all-of (list
+             (one-of (list
+                      (exactly CPE101)
+                      (exactly CPE102)))
+             (exactly CPE357)))))
+  
+  (check-true
+   (meets
+    (set CPE101 CPE102 CPE225 CPE357)
+    (all-of (list
+             (one-of (list
+                      (exactly CPE101)
+                      (exactly CPE102)))
+             (exactly CPE357)))))
 
   ;; get-satisfying-courses tests
   (check-equal?
@@ -563,5 +581,4 @@
  deduplicate-courses
  get-remaining-count
  get-minimum-cost-to-satisfy
- get-class-counts
- helps-student-core)
+ get-class-counts)
