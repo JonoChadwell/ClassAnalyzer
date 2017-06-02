@@ -5,6 +5,7 @@
   "requirement.rkt"
   "utilities.rkt"
   "civil-program.rkt"
+  "cs-program.rkt"
   "csv-reader.rkt"
   "csv-writer.rkt"
   "student.rkt"
@@ -15,7 +16,7 @@
   "quarter.rkt"
   plot)
 
-(define student-list (get-students-from-file "data/foo.csv" bs-civil-15-17))
+(define student-list (get-students-from-file "data/2174-csc-grade-data.csv" bs-cs-15-17))
 
 (define (get-matching-students courses req)
   (filter (lambda (x) (meets x req)) courses))
@@ -163,23 +164,23 @@
                           2172)))
 
 (define (get-student emplid)
-    (let ([matching-students (filter (lambda (stdnt) (equal? (student-id stdnt) emplid)) student-list)])
-      (if (= (length matching-students) 1)
-          (first matching-students)
-          (error "Student not found"))))
+  (let ([matching-students (filter (lambda (stdnt) (equal? (student-id stdnt) emplid)) student-list)])
+    (if (= (length matching-students) 1)
+        (first matching-students)
+        (error "Student not found"))))
 
 (define (dotest stdnt)
-    (build-course-trees 2172 (curriculum-requirements (student-major stdnt)) (student-current-classes stdnt)))
+  (build-course-trees 2172 (curriculum-requirements (student-major stdnt)) (student-current-classes stdnt)))
 
 (define (check-classes stdnt)
   (pair
    (student-id stdnt)
    (let ([grad-quarter-before (minimum-graduation-quarter (student-courses-before stdnt current-quarter)
-                                                      (student-major stdnt)
-                                                      current-quarter)]
+                                                          (student-major stdnt)
+                                                          current-quarter)]
          [grad-quarter-after (minimum-graduation-quarter (student-courses-before stdnt next-quarter)
-                                                      (student-major stdnt)
-                                                      next-quarter)])
+                                                         (student-major stdnt)
+                                                         next-quarter)])
      (if (< grad-quarter-before grad-quarter-after)
          "Possible problem"
          "Okay"))))
@@ -285,7 +286,7 @@
     (for-each
      (lambda (crs-id)
        (write-csv
-        (string-append (course-id-dept crs-id) "_" (course-id-number crs-id))
+        (string-append (course-id->string crs-id))
         analysis))
      (set->list (course-identifiers crs)))))
 
@@ -294,3 +295,44 @@
   (for-each
    generate-course-analysis-file
    (get-courses-from-department dept)))
+
+; Gest a csv writable analysis file for a student
+(define (get-student-analysis stdnt)
+  (let* ([planned-classes (set->list (student-planned-classes stdnt))]
+         [coursework (student-current-classes stdnt)]
+         [proposed-schedule (get-proposed-schedule
+                             coursework
+                             (student-major stdnt)
+                             current-quarter)])
+    (list
+     (list "Emplid:" (student-id stdnt))
+     (list "Major:" (curriculum-name (student-major stdnt)))
+     (list "Earliest Possible Graduation:"
+           (number->string
+            (max-list (cons current-quarter (hash-keys proposed-schedule)))))
+     (cons "Completed Classes:" (map course-id->string (set->list (student-courses-before stdnt current-quarter))))
+     (cons "Current Classes:" (map course-id->string (set->list (student-enrolled-classes stdnt))))
+     (cons "Available Classes:" (map course-id->string
+                                     (set->list
+                                      (hash-ref
+                                       proposed-schedule
+                                       current-quarter
+                                       (lambda () empty)))))
+     (cons "Planned Classes:" (map course-id->string planned-classes))
+     (cons "Meets Prereqs:" (map boolean->string
+                                 (map (lambda (x)
+                                        (let ([crs (course-id->course x)])
+                                          (meets coursework (course-prereqs crs))))
+                                      planned-classes)))
+     (cons "Already Took:" (map boolean->string
+                                (map (lambda (x)
+                                       (set-member? coursework x))
+                                     planned-classes))))))
+
+(define (generate-student-analysis-files)
+  (for-each
+   (lambda (stdnt)
+     (write-csv 
+      (student-id stdnt)
+      (get-student-analysis stdnt)))
+   student-list))

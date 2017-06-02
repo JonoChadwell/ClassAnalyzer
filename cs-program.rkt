@@ -27,11 +27,14 @@
                        (exactly (course-id "CSC" "309"))))))
 
      ;; core classes
+     (group-any
+      "CSC" "225"
+      "CPE" "233")
      (group-all
-      "CSC" "101"
+      ;; This requirement is implied as a prereq for CSC 108/202 and just makes noise for people with AP credit
+      ; "CSC" "101"
       "CSC" "123"
       "CSC" "203"
-      "CSC" "225"
       "CSC" "300"
       "CSC" "315"
       "CSC" "348"
@@ -48,8 +51,10 @@
               (exactly (course-id "MATH" "244"))))
      (group-all
       "ENGL" "149"
-      "MATH" "141"
-      "MATH" "142"
+      ;; This requirement is implied as a prereq for MATH 143 and just makes noise for people with AP credit
+      ; "MATH" "141"
+      ;; This requirement is implied as a prereq for MATH 143 and just makes noise for people with AP credit
+      ; "MATH" "142"
       "MATH" "143"
       "STAT" "312")
      (one-of (list

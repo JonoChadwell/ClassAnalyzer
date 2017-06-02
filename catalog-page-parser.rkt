@@ -192,6 +192,8 @@
                   "unexpected text: ~e"
                   other)]))
 
+;; Apply crosslisting overrides
+
 ;; gets the set of all identifiers for a sxml representation of a course
 (define (get-all-names sxml primary-id)
   (let ([crosslistings (cross-listing-info sxml)])

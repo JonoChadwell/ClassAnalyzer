@@ -1,9 +1,12 @@
 #lang typed/racket
 
-(require "types.rkt" "quarter.rkt" "utilities.rkt")
+(require "types.rkt" "quarter.rkt" "utilities.rkt" "course-overrides.rkt")
 
 (require/typed  "catalog-page-parser.rkt"
                 [read-courses-from-file (-> String (Listof course))])
+
+(require/typed "course-overrides.rkt"
+               [course-aliases (HashTable course-id course-id)])
 
 (: get-first-alphabetically (-> course-id course-id course-id))
 (define (get-first-alphabetically a b)
@@ -46,7 +49,11 @@
 ;; Gets the full course object from any of its identifiers
 (: get-course (-> course-id course))
 (define (get-course id)
-  (hash-ref course-id-table id
+  (hash-ref course-id-table
+            (hash-ref
+             course-aliases
+             id
+             (lambda () id))
             (lambda ()
               (course
                (set id)
@@ -113,6 +120,7 @@
                "Unlisted Course"
                empty-requirement))))
 
+;; Gets a string representation of a course
 (: course-id->string (-> course-id String))
 (define (course-id->string id)
   (string-append (course-id-dept id) "_" (course-id-number id)))
@@ -155,6 +163,10 @@
   (check-equal?
    (course-number test-course-1)
    "357")
+
+  (check-equal?
+   (course-id->string (course-id "CPE" "101"))
+   "CPE_101")
 
   (check-equal?
    (course-dept test-course-1)

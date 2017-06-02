@@ -31,7 +31,7 @@
 
 
 (define current-quarter 2174)
-(define next-quarter (quarter-after current-quarter))
+(define next-quarter 2178)
 
 
 (module+ test

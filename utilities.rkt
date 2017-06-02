@@ -70,6 +70,13 @@
       #t
       #f))
 
+; Gets a string representation of a boolean value
+(: boolean->string (-> Boolean String))
+(define (boolean->string b)
+  (if b
+      "true"
+      "false"))
+
 (module+ test
   (require typed/rackunit)
 
@@ -111,7 +118,14 @@
          "three" 3))
 
   (check-true (list-contains 'b '(a b c d)))
-  (check-false (list-contains 'e '(a b c d))))
+  (check-false (list-contains 'e '(a b c d)))
+
+  (check-equal?
+   (boolean->string #t)
+   "true")
+  (check-equal?
+   (boolean->string #f)
+   "false"))
 
 (provide
  pair
@@ -123,4 +137,5 @@
  smallest-set
  hash-retain-keys
  hash-retain-values
- list-contains)
+ list-contains
+ boolean->string)
