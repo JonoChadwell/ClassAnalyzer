@@ -3,7 +3,7 @@
 (require html-parsing
          sxml/sxpath
          "types.rkt"
-         "prereq-overrides.rkt")
+         "course-overrides.rkt")
 
 ;; this file mostly lifted from Dr. Clement's web scraper
 
