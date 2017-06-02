@@ -4,6 +4,9 @@
 
 (define prereq-override-map
   (hash
+   (course-id "CSC" "357") (all-of (list (group-any "CSC" "225" "CPE" "233") (exactly (course-id "CSC" "203"))))
+   (course-id "CPE" "431") (exactly (course-id "CSC" "430"))
+   (course-id "CSC" "491") (group-any "CSC" "307" "CSC" "309")
    (course-id "ME" "211") (group-all "PHYS" "141" "MATH" "143")
    (course-id "CE" "111") (all-of empty)
    (course-id "CE" "112") (all-of empty) ;; leaving out calc 1 requirement because we don't have data for AP high school credit
@@ -22,16 +25,17 @@
 ;; the course. (Some of these should probably be in the requirements for various majors instead of here).
 (define course-aliases
   (hash
-   (course-id "CPE" "430") (course-id "CSC" "430")
-   (course-id "CPE" "349") (course-id "CSC" "349")
+   (course-id "STAT" "321") (course-id "STAT" "312")
    (course-id "CPE" "101") (course-id "CSC" "101")
    (course-id "CPE" "102") (course-id "CSC" "202")
    (course-id "CPE" "103") (course-id "CSC" "203")
+   (course-id "CSC" "141") (course-id "CSC" "348")
+   (course-id "CPE" "225") (course-id "CSC" "225")
    (course-id "CPE" "300") (course-id "CSC" "300")
    (course-id "CPE" "307") (course-id "CSC" "307")
-   (course-id "STAT" "321") (course-id "STAT" "312")
    (course-id "CSC" "315") (course-id "CPE" "315")
-   (course-id "CSC" "141") (course-id "CSC" "348")))
+   (course-id "CPE" "349") (course-id "CSC" "349")
+   (course-id "CPE" "430") (course-id "CSC" "430")))
   
 
 (provide prereq-override-map course-aliases)

@@ -28,6 +28,11 @@
                                          (curriculum-requirements major)
                                          courses))))
 
+;; Gets a schedule which will lead a student to graduation (disregarding technical
+;; electives and human constraints such as only taking 16 units per quarter)
+;; courses - the students current completed courses
+;; major - the students major
+;; qtr - the first quarter to schedule classes in
 (: get-proposed-schedule (-> course-set curriculum Quarter (HashTable Quarter course-set)))
 (define (get-proposed-schedule courses major qtr)
   (pack-classes qtr (build-course-trees qtr (curriculum-requirements major) courses)))

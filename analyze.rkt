@@ -16,7 +16,7 @@
   "quarter.rkt"
   plot)
 
-(define student-list (get-students-from-file "data/2174-csc-grade-data.csv" bs-cs-15-17))
+(define student-list (get-students-from-file "data/2174-ce-grade-data.csv" bs-civil-15-17))
 
 (define (get-matching-students courses req)
   (filter (lambda (x) (meets x req)) courses))
@@ -249,25 +249,21 @@
 (define (get-student-course-info stdnt crs)
   (list
    (student-id stdnt)
-   (if (meets
-        (student-current-classes stdnt)
-        (course-prereqs crs))
-       "Y"
-       "N")
+   (boolean->string (meets
+                     (student-current-classes stdnt)
+                     (course-prereqs crs)))
    (let ([student-classes (set-union
                            (student-current-classes stdnt)
                            (student-planned-classes stdnt))])
      (number->string
       (quarter-difference
        (minimum-graduation-quarter
-        student-classes (student-major stdnt) current-quarter)
+        student-classes (student-major stdnt) (quarter-after next-quarter))
        (minimum-graduation-quarter
-        (set-remove student-classes (course-identifier crs)) (student-major stdnt) current-quarter))))
-   (if (set-member?
-        (student-current-classes stdnt)
-        (course-identifier crs))
-       "Y"
-       "N")))
+        (set-remove student-classes (course-identifier crs)) (student-major stdnt) (quarter-after next-quarter)))))
+   (boolean->string (set-member?
+                     (student-current-classes stdnt)
+                     (course-identifier crs)))))
    
 
 ; Gets a csv writable analysis of a course
@@ -296,20 +292,44 @@
    generate-course-analysis-file
    (get-courses-from-department dept)))
 
-; Gest a csv writable analysis file for a student
+; Builds a list of lists of strings representing a schedule
+; a schedule is a hash of quarter->course-set
+(define (stringify-schedule schedule)
+  (map
+   (lambda (pr)
+     (cons (number->string (left pr))
+           (map
+            course-id->string
+            (set->list (right pr)))))
+   (sort
+    (hash->list schedule)
+    (lambda (a b) (< (left a) (left b))))))
+
+; Gets a csv writable analysis file for a student
 (define (get-student-analysis stdnt)
   (let* ([planned-classes (set->list (student-planned-classes stdnt))]
          [coursework (student-current-classes stdnt)]
          [proposed-schedule (get-proposed-schedule
                              coursework
                              (student-major stdnt)
-                             current-quarter)])
-    (list
+                             current-quarter)]
+         [major (student-major stdnt)])
+    (list*
      (list "Emplid:" (student-id stdnt))
-     (list "Major:" (curriculum-name (student-major stdnt)))
+     (list "Major:" (curriculum-name major))
      (list "Earliest Possible Graduation:"
            (number->string
             (max-list (cons current-quarter (hash-keys proposed-schedule)))))
+     (list "Min core units needed:"
+           (number->string
+            (get-min-core-units coursework
+                                (curriculum-requirements major))))
+     (list "Tech Elective units required:"
+           (number->string
+            (curriculum-te-needed major)))
+     (list "Tech Elective units completed:"
+           (number->string
+            ((curriculum-te-calculator major) coursework)))
      (cons "Completed Classes:" (map course-id->string (set->list (student-courses-before stdnt current-quarter))))
      (cons "Current Classes:" (map course-id->string (set->list (student-enrolled-classes stdnt))))
      (cons "Available Classes:" (map course-id->string
@@ -327,7 +347,9 @@
      (cons "Already Took:" (map boolean->string
                                 (map (lambda (x)
                                        (set-member? coursework x))
-                                     planned-classes))))))
+                                     planned-classes)))
+     (list "Proposed Schedule:")
+     (stringify-schedule proposed-schedule))))
 
 (define (generate-student-analysis-files)
   (for-each

@@ -113,11 +113,6 @@
               D3
               D4))))))
 
-;; checks whether a course is a valid core tech-elective
-(define (valid-te crs)
-  ;; todo
-  #f)
-
 (define te-valid
   (map cannonicalize-course 
        (list
@@ -247,6 +242,12 @@
         (course-id "CPE" "416")
         (course-id "CPE" "465"))))
 
+;; Checks whether a course is a valid core tech-elective
+(define (valid-te? crs)
+  (let ([crs-cannonical (cannonicalize-course crs)])
+    (or (set-member? te-valid crs-cannonical)
+        (set-member? te-must-have crs-cannonical))))
+
 ;; CSC students can get credit for up to 4 units from these courses
 (define te-four-unit-max
   (map cannonicalize-course 
@@ -308,11 +309,11 @@
   (let ([units (sum-list
                 (map get-num-units
                      (filter
-                      valid-te
+                      valid-te?
                       (set->list courses))))])
     ; Limit TE units to one less than enough if no tech elective with prereq
     ; has been taken
-    (if (set-empty? (set-intersect (list->set courses te-must-have)))
+    (if (set-empty? (set-intersect courses (list->set te-must-have)))
         (min units (- needed-te-units 1))
         units)))
 

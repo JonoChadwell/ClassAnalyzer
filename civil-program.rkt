@@ -61,11 +61,10 @@
       "GEOL" "201"
       "MATE" "210"
       "MATE" "215"
-      ;; This requirement is implied as a prereq for MATH 143 and just makes noise for people with AP credit
+      ;; These requirements are implied as prereqs for MATH 241 and just make noise for people with AP credit
       ; "MATH" "141"
-      ;; This requirement is implied as a prereq for MATH 143 and just makes noise for people with AP credit
       ; "MATH" "142"
-      "MATH" "143"
+      ; "MATH" "143"
       "MATH" "241"
       "MATH" "244"
       "ME" "211"

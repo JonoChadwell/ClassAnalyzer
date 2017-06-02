@@ -263,15 +263,17 @@
       empty
       (append (map (lambda ([value : B]) (cons (first a) value)) b) (cross (rest a) b))))
 
-;; Shorthand for creating a one of many classes requirement
+;; Shorthand for creating a one-of classes requirement
 (: group-any (-> String * one-of))
 (define (group-any . values)
   (one-of (group-list values)))
 
+;; Shorthand for creating an all-of classes requirement
 (: group-all (-> String * all-of))
 (define (group-all . values)
   (all-of (group-list values)))
 
+;; Shorthand for creating a list of exactly requirements
 (: group-list (-> (Listof String) (Listof exactly)))
 (define (group-list vals)
   (if (empty? vals)

@@ -1,0 +1,46 @@
+CSC
+
+> (length student-list)
+727
+> (num-completed (course-id "CSC" "101"))
+532
+> (num-completed (course-id "CSC" "357"))
+406
+> (num-completed (course-id "CSC" "471"))
+88
+
+
+CPE
+
+> (length student-list)
+482
+> (num-completed (course-id "CSC" "101"))
+360
+> (num-completed (course-id "CSC" "357"))
+239
+> (num-completed (course-id "CSC" "471"))
+16
+
+
+SE
+
+> (length student-list)
+258
+> (num-completed (course-id "CSC" "101"))
+201
+> (num-completed (course-id "CSC" "357"))
+146
+> (num-completed (course-id "CSC" "471"))
+30
+
+
+Totals:
+
+> (length student-list)
+1467
+> (num-completed (course-id "CSC" "101"))
+1093
+> (num-completed (course-id "CSC" "357"))
+791
+> (num-completed (course-id "CSC" "471"))
+134

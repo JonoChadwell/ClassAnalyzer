@@ -13,10 +13,6 @@
    courses
    req))
 
-(provide
- get-num-units
- get-min-core-units)
-
 (module+ test
   (require typed/rackunit "test-data.rkt")
 
@@ -35,3 +31,7 @@
   (check-equal?
    (get-min-core-units (set FAKE_101) FAKE_ENGINEERING_REQ)
    20))
+
+(provide
+ get-num-units
+ get-min-core-units)
