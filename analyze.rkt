@@ -4,8 +4,6 @@
   racket/set
   "requirement.rkt"
   "utilities.rkt"
-  "civil-program.rkt"
-  "cs-program.rkt"
   "csv-reader.rkt"
   "csv-writer.rkt"
   "student.rkt"
@@ -16,7 +14,7 @@
   "quarter.rkt"
   plot)
 
-(define student-list (get-students-from-file "data/2174-ce-grade-data.csv" bs-civil-15-17))
+(define student-list (get-students-from-file "data/2174-computing-major-grade-data.csv"))
 
 (define (get-matching-students courses req)
   (filter (lambda (x) (meets x req)) courses))
@@ -24,6 +22,7 @@
 (define (course->string crs)
   (string-append (course-id-dept crs) "_" (course-id-number crs)))
 
+#|
 ;; Current enrollment
 (define current-enrollment-data
   (map
@@ -36,7 +35,7 @@
           (set-member? (student-enrolled-classes stdnt) considered-course))
         student-list))))
    (hash-keys important-courses)))
-#|
+
 ;; Course completion
 (define courses-completed-data
   (map
@@ -241,6 +240,8 @@
 (define student-rows-header
   (list
    "Student ID"
+   "Student email"
+   "Student major"
    "Has Prereqs"
    "Miss Cost (number of extra quarters a student will take if they don't get this course)"
    "Already Taken (Y means the student has already completed this class)"))
@@ -249,6 +250,8 @@
 (define (get-student-course-info stdnt crs)
   (list
    (student-id stdnt)
+   (student-email stdnt)
+   (curriculum-ticker (student-major stdnt))
    (boolean->string (meets
                      (student-current-classes stdnt)
                      (course-prereqs crs)))
@@ -264,7 +267,6 @@
    (boolean->string (set-member?
                      (student-current-classes stdnt)
                      (course-identifier crs)))))
-   
 
 ; Gets a csv writable analysis of a course
 (define (get-course-analysis crs)

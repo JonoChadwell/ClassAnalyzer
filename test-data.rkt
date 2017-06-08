@@ -57,6 +57,7 @@
 (define FAKE_ENGINEERING
   (curriculum
    "Phony Engineering"
+   "PHE"
    FAKE_ENGINEERING_REQ
    (lambda ([x : course-set])
      (sum-list
@@ -71,6 +72,7 @@
 (define FAKE_STUDENT_1
   (student
    "12344321"
+   "fake_student@capoly.edu"
    FAKE_ENGINEERING
    (hash
     2002 (set FAKE_101)

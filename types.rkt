@@ -39,6 +39,7 @@
 ;; represents the full requirements for a degree
 (struct curriculum
   ([name : String]
+   [ticker : String]
    [requirements : Requirement]
    [te-calculator : (-> course-set Integer)]
    [te-needed : Integer])
@@ -57,6 +58,7 @@
 ;; represents a single student
 (struct student
   ([id : String]
+   [email : String]
    [major : curriculum]
    [coursework : (HashTable Quarter course-set)])
   #:transparent)

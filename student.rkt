@@ -71,6 +71,7 @@
   (define fake-curriculum
     (curriculum
      "Test"
+     "FAKE"
      empty-requirement
      (lambda (x) 0)
      0))
@@ -78,6 +79,7 @@
   (define test-student-1
     (student
      "123"
+     "anon@capoly.edu"
      fake-curriculum
      (hash
       (- current-quarter 4) (set f101)

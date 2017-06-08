@@ -5,7 +5,7 @@
 ;; 2015-17 catalog.
 ;; Data from http://catalog.calpoly.edu/collegesandprograms/collegeofengineering/civilenvironmentalengineering/bscivilengineering/
 
-(define bs-civil-15-17-main-coursework
+(define bs-ce-15-17-main-coursework
   (cannonicalize-req
    (all-of
     (list
@@ -172,10 +172,11 @@
 
 (define needed-te-units 24)
 
-(define bs-civil-15-17
+(define bs-ce-15-17
   (curriculum
    "Civil Engineering BS. 2015-17 catalog."
-   bs-civil-15-17-main-coursework
+   "CE"
+   bs-ce-15-17-main-coursework
    count-total-te-units
    needed-te-units))
 
@@ -316,10 +317,10 @@
           (course-id "ANT" "201")
           (course-id "KINE" "250"))))
 
-  (check-true (meets (list->set completed-coursework) (curriculum-requirements bs-civil-15-17)))
-  (check-false (meets (list->set missing-senior-project) (curriculum-requirements bs-civil-15-17))))
+  (check-true (meets (list->set completed-coursework) (curriculum-requirements bs-ce-15-17)))
+  (check-false (meets (list->set missing-senior-project) (curriculum-requirements bs-ce-15-17))))
 
 
 (provide
- bs-civil-15-17
+ bs-ce-15-17
  important-courses)

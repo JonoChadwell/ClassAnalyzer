@@ -77,6 +77,14 @@
       "true"
       "false"))
 
+; Gets a numeric representation of a string containing an integer
+(: string->integer (-> String Integer))
+(define (string->integer str)
+  (let ([numeric-val (string->number str)])
+    (if numeric-val
+        (cast (string->number str) Integer)
+        (error (string-append "Invalid integer: " str)))))
+
 (module+ test
   (require typed/rackunit)
 
@@ -125,7 +133,11 @@
    "true")
   (check-equal?
    (boolean->string #f)
-   "false"))
+   "false")
+
+  (check-equal? (string->integer "15") 15)
+  (check-exn exn:fail? (lambda () (string->integer "-3.2")))
+  (check-exn exn:fail? (lambda () (string->integer "potato"))))
 
 (provide
  pair
@@ -138,4 +150,5 @@
  hash-retain-keys
  hash-retain-values
  list-contains
- boolean->string)
+ boolean->string
+ string->integer)

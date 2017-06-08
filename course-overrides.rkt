@@ -4,6 +4,9 @@
 
 (define prereq-override-map
   (hash
+   ;; For CSC program
+   (course-id "CSC" "357") (all-of (list (exactly (course-id "CSC" "203")) (group-any "CSC" "225" "CPE" "233")))
+   ;; For Civil program
    (course-id "CSC" "357") (all-of (list (group-any "CSC" "225" "CPE" "233") (exactly (course-id "CSC" "203"))))
    (course-id "CPE" "431") (exactly (course-id "CSC" "430"))
    (course-id "CSC" "491") (group-any "CSC" "307" "CSC" "309")
@@ -29,6 +32,7 @@
    (course-id "CPE" "101") (course-id "CSC" "101")
    (course-id "CPE" "102") (course-id "CSC" "202")
    (course-id "CPE" "103") (course-id "CSC" "203")
+   (course-id "CSC" "103") (course-id "CSC" "203")
    (course-id "CSC" "141") (course-id "CSC" "348")
    (course-id "CPE" "225") (course-id "CSC" "225")
    (course-id "CPE" "300") (course-id "CSC" "300")
