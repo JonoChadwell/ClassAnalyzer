@@ -61,37 +61,4 @@
    [coursework : (HashTable Quarter course-set)])
   #:transparent)
 
-(provide
- exactly
- exactly?
- exactly-take
- one-of
- one-of?
- one-of-reqs
- all-of
- all-of?
- all-of-reqs
- Requirement
- empty-requirement
- course-id
- course-id-dept
- course-id-number
- course
- course-identifiers
- course-units
- course-name
- course-prereqs
- course-set
- course-typical-terms
- student
- student-id
- student-major
- student-coursework
- curriculum
- curriculum-name
- curriculum-requirements
- curriculum-te-calculator
- curriculum-te-needed
- Quarter
- Term)
-
+(provide (all-defined-out))
