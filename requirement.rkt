@@ -186,6 +186,23 @@
          reqs)))]))
 
 ;; gets the minimum number of classes a student has yet to take to satisfy a requirement
+;; KNOWN BUG: this method will return an incorrect value for requirements which
+;; contain a duplicated class that is better than all other 'or' options for that class
+;; in multiple places in the requirements tree.
+;; For example:
+#|
+(get-minimum-cost-to-satisfy
+ (lambda (crs-id) 1)
+ empty
+ (all-of (list
+          (one-of (list (exactly (course-id "FAKE" "100") (group-all "FAKE" "101" "FAKE" "102"))))
+          (one-of (list (exactly (course-id "FAKE" "100") (group-all "FAKE" "103" "FAKE" "104")))))))
+|#
+;; would evaluate to 2, however ideally it would evaulate to 3 because credit for FAKE 100 can only be
+;; applied in one place. This problem does not appear when the critical course is in the list of already
+;; taken courses (the above example would properly evaluate to 2 instead of 1 if the 'empty' in the
+;; get-minimum-cost-to-satisfy call above was replaced with (set (course-id "FAKE" "100")).
+;; Requirements of this form do not appear in any of the currently supported catalogs.
 (: get-minimum-cost-to-satisfy (-> (-> course-id Real) course-set Requirement Real))
 (define (get-minimum-cost-to-satisfy cost courses req)
   (let* ([result (deduplicate-courses courses req)]

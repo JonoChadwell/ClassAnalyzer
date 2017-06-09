@@ -14,7 +14,7 @@
   "quarter.rkt"
   plot)
 
-(define student-list (get-students-from-file "data/2174-computing-major-grade-data.csv"))
+(define student-list (get-students-from-file "data/2174-ce-grade-data.csv"))
 
 (define (get-matching-students courses req)
   (filter (lambda (x) (meets x req)) courses))
@@ -334,12 +334,6 @@
             ((curriculum-te-calculator major) coursework)))
      (cons "Completed Classes:" (map course-id->string (set->list (student-courses-before stdnt current-quarter))))
      (cons "Current Classes:" (map course-id->string (set->list (student-enrolled-classes stdnt))))
-     (cons "Available Classes:" (map course-id->string
-                                     (set->list
-                                      (hash-ref
-                                       proposed-schedule
-                                       current-quarter
-                                       (lambda () empty)))))
      (cons "Planned Classes:" (map course-id->string planned-classes))
      (cons "Meets Prereqs:" (map boolean->string
                                  (map (lambda (x)
