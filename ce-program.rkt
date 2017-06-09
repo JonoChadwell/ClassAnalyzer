@@ -154,14 +154,14 @@
 
 (define (count-te-limited-units courses)
   (min 4
-       (sum-list
+       (sum-int-list
         (map get-num-units
              (filter
               (lambda (crs) (member crs te-four-unit-max))
               (set->list courses))))))
 
 (define (count-te-non-limited-units courses)
-  (sum-list
+  (sum-int-list
    (map get-num-units
         (filter
          valid-te

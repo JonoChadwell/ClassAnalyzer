@@ -73,7 +73,7 @@
       (course-next-offered
        (course-tree-crs tree)
        (quarter-after
-        (max-list (map (lambda ([x : course-tree]) (tree-complete-quarter qtr x))
+        (max-int-list (map (lambda ([x : course-tree]) (tree-complete-quarter qtr x))
                        (course-tree-children tree)))))))
 
 ;; Returns the quickest course tree to complete out of a list

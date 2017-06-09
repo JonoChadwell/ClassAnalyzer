@@ -6,7 +6,7 @@
 (define (get-num-units crs)
   (course-units (course-id->course crs)))
 
-(: get-min-core-units (-> course-set Requirement Integer))
+(: get-min-core-units (-> course-set Requirement Real))
 (define (get-min-core-units courses req)
   (get-minimum-cost-to-satisfy
    get-num-units

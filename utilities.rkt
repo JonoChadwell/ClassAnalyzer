@@ -13,22 +13,43 @@
 (define right cdr)
 
 ; returns the smallest value in a list
-(: min-list (-> (Listof Integer) Integer))
-(define (min-list lst)
+(: min-int-list (-> (Listof Integer) Integer))
+(define (min-int-list lst)
+  (if (empty? lst)
+      (error "Empty list has no minimum element")
+      (foldl min (first lst) (rest lst))))
+
+; returns the smallest value in a list
+(: min-real-list (-> (Listof Real) Real))
+(define (min-real-list lst)
   (if (empty? lst)
       (error "Empty list has no minimum element")
       (foldl min (first lst) (rest lst))))
 
 ; returns the largest value in a list
-(: max-list (-> (Listof Integer) Integer))
-(define (max-list lst)
+(: max-real-list (-> (Listof Real) Real))
+(define (max-real-list lst)
+  (if (empty? lst)
+      (error "Empty list has no minimum element")
+      (foldl max (first lst) (rest lst))))
+
+; returns the largest value in a list
+(: max-int-list (-> (Listof Integer) Integer))
+(define (max-int-list lst)
   (if (empty? lst)
       (error "Empty list has no minimum element")
       (foldl max (first lst) (rest lst))))
 
 ; returns the sum of a list
-(: sum-list (-> (Listof Integer) Integer))
-(define (sum-list lst)
+(: sum-real-list (-> (Listof Real) Real))
+(define (sum-real-list lst)
+  (if (empty? lst)
+      0.0
+      (foldl + (first lst) (rest lst))))
+
+; returns the sum of a list
+(: sum-int-list (-> (Listof Integer) Integer))
+(define (sum-int-list lst)
   (if (empty? lst)
       0
       (foldl + (first lst) (rest lst))))
@@ -94,14 +115,23 @@
 
   (check-equal? (right (pair 'a 'b)) 'b)
 
-  (check-equal? (min-list '(7 2 4 1 3 7 11)) 1)
-  (check-exn exn:fail? (lambda () (min-list empty)))
-  
-  (check-equal? (max-list '(1 2 3 6 5)) 6)
-  (check-exn exn:fail? (lambda () (max-list empty)))
+  (check-equal? (min-int-list '(7 2 4 1 3 7 11)) 1)
+  (check-exn exn:fail? (lambda () (min-int-list empty)))
 
-  (check-equal? (sum-list '(3 1 2)) 6)
-  (check-equal? (sum-list empty) 0)
+  (check-equal? (min-real-list '(1.3 2.2 3.1)) 1.3)
+  (check-exn exn:fail? (lambda () (min-real-list empty)))
+  
+  (check-equal? (max-int-list '(1 2 3 6 5)) 6)
+  (check-exn exn:fail? (lambda () (max-int-list empty)))
+
+  (check-equal? (max-real-list '(1.3 2.2 3.1)) 3.1)
+  (check-exn exn:fail? (lambda () (max-real-list empty)))
+
+  (check-equal? (sum-int-list '(3 1 2)) 6)
+  (check-equal? (sum-int-list empty) 0)
+
+  (check-equal? (sum-real-list '(1.3 2.2 3.1)) 6.6)
+  (check-equal? (sum-real-list empty) 0.0)
 
   (check-equal? (smallest-set (list (set 0 1 2) (set 0 1) (set 0 1 2 3)))
                 (set 0 1))
@@ -139,16 +169,4 @@
   (check-exn exn:fail? (lambda () (string->integer "-3.2")))
   (check-exn exn:fail? (lambda () (string->integer "potato"))))
 
-(provide
- pair
- left
- right
- min-list
- max-list
- sum-list
- smallest-set
- hash-retain-keys
- hash-retain-values
- list-contains
- boolean->string
- string->integer)
+(provide (all-defined-out))

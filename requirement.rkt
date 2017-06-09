@@ -155,41 +155,49 @@
          [new-classes (explode-courses courses (hash->list counts))])
     (pair new-classes new-req)))
 
+;; Determines whether a course-id has been deduplicated
+(: deduped? (-> course-id Boolean))
+(define (deduped? crs-id)
+  (string-contains? (course-id-number crs-id) "_#"))
+
 ;; gets the minimum number of classes a student has yet to take to satisfy a requirement
 ;; req must contain no duplicated courses
-(: get-minimum-cost-to-satisfy-deduped (-> (-> course-id Integer) course-set Requirement Integer))
+;; Returns +infinity if the student cannot satisfy the requirement
+(: get-minimum-cost-to-satisfy-deduped (-> (-> course-id Real) course-set Requirement Real))
 (define (get-minimum-cost-to-satisfy-deduped cost courses req)
   (cond
     [(exactly? req)
      (if (set-member? courses (exactly-take req))
          0
-         (cost (exactly-take req)))]
+         (if (deduped? (exactly-take req))
+             +inf.0 ;; The student is already applying the class to another requirement
+             (cost (exactly-take req))))]
     [(one-of? req)
      (let ([reqs (one-of-reqs req)])
-       (min-list
+       (min-real-list
         (map
          (lambda ([r : Requirement]) (get-minimum-cost-to-satisfy-deduped cost courses r))
          reqs)))]
     [(all-of? req)
      (let ([reqs (all-of-reqs req)])
-       (sum-list
+       (sum-real-list
         (map
          (lambda ([r : Requirement]) (get-minimum-cost-to-satisfy-deduped cost courses r))
          reqs)))]))
 
 ;; gets the minimum number of classes a student has yet to take to satisfy a requirement
-(: get-minimum-cost-to-satisfy (-> (-> course-id Integer) course-set Requirement Integer))
+(: get-minimum-cost-to-satisfy (-> (-> course-id Real) course-set Requirement Real))
 (define (get-minimum-cost-to-satisfy cost courses req)
   (let* ([result (deduplicate-courses courses req)]
          [possible-courses (left result)]
          [new-req (right result)])
-    (min-list (map
+    (min-real-list (map
                (lambda ([courses : course-set])
                  (get-minimum-cost-to-satisfy-deduped cost courses new-req))
                possible-courses))))
 
 ;; gets the minimum number of classes a student has yet to take to satisfy a requirement
-(: get-remaining-count (-> course-set Requirement Integer))
+(: get-remaining-count (-> course-set Requirement Real))
 (define (get-remaining-count courses req)
   (get-minimum-cost-to-satisfy (lambda ([x : course-id]) 1) courses req))
 
@@ -282,6 +290,31 @@
             [number (second vals)]
             [remaining (rest (rest vals))])
         (cons (exactly (course-id dept number)) (group-list remaining)))))
+
+
+;; Gets all course-ids present in a requirement
+(: get-all-course-ids (-> Requirement course-set))
+(define (get-all-course-ids req)
+  (cond
+    [(exactly? req)
+     (set (exactly-take req))]
+    [(one-of? req)
+     (foldl
+      (cast set-union (-> course-set course-set course-set))
+      (cast (set) course-set)
+      (map get-all-course-ids (one-of-reqs req)))]
+    [(all-of? req)
+     (foldl
+      (cast set-union (-> course-set course-set course-set))
+      (cast (set) course-set)
+      (map get-all-course-ids (all-of-reqs req)))]))
+
+;; Makes sure that a requirement can be completed.
+;; This operation can be very computationally expensive for large requirements
+(: satisfiable (-> Requirement Boolean))
+(define (satisfiable req)
+  (let ([all-possible-courses (get-all-course-ids req)])
+    (meets all-possible-courses req)))
 
 (module+ test
   (require typed/rackunit)
@@ -534,38 +567,87 @@
              (one-of (list (exactly (course-id "CPE" "101_#1")) (exactly CPE102)))
              (one-of (list (exactly (course-id "CPE" "101_#2")) (exactly CPE103)))))))
 
-  ;; get-remaining-count tests
   (check-equal?
-   (get-remaining-count
-    (set CPE101 CPE102)
-    (all-of (list
-             (one-of (list (exactly CPE101) (exactly CPE102)))
-             (one-of (list (exactly CPE101) (exactly CPE103))))))
-   0)
-
-  (check-equal?
-   (get-remaining-count
-    (set CPE101)
-    (all-of (list
-             (one-of (list (exactly CPE101) (exactly CPE102)))
-             (one-of (list (exactly CPE101) (exactly CPE103))))))
-   1)
-
-  (check-equal?
-   (get-remaining-count
+   (deduplicate-courses
     (set)
     (all-of (list
              (one-of (list (exactly CPE101) (exactly CPE102)))
              (one-of (list (exactly CPE101) (exactly CPE103))))))
-   2)
-
-  (check-equal?
-   (get-remaining-count
-    (set CPE103)
+   (pair
+    (list (set))
     (all-of (list
              (one-of (list (exactly CPE101) (exactly CPE102)))
-             (all-of (list (exactly CPE103) (exactly CPE357))))))
-   2))
+             (one-of (list (exactly CPE101) (exactly CPE103)))))))
+
+  ;; get-remaining-count tests
+  (check-true
+   (=
+    (get-remaining-count
+     (set CPE101 CPE102)
+     (all-of (list
+              (one-of (list (exactly CPE101) (exactly CPE102)))
+              (one-of (list (exactly CPE101) (exactly CPE103))))))
+    0))
+
+  (check-true
+   (=
+    (get-remaining-count
+     (set CPE101)
+     (all-of (list
+              (one-of (list (exactly CPE101) (exactly CPE102)))
+              (one-of (list (exactly CPE101) (exactly CPE103))))))
+    1.0))
+
+  (check-true
+   (=
+    (get-remaining-count
+     (set)
+     (all-of (list
+              (one-of (list (exactly CPE101) (exactly CPE102)))
+              (one-of (list (exactly CPE101) (exactly CPE103))))))
+    2))
+
+  (check-true
+   (=
+    (get-remaining-count
+     (set CPE103)
+     (all-of (list
+              (one-of (list (exactly CPE101) (exactly CPE102)))
+              (all-of (list (exactly CPE103) (exactly CPE357))))))
+    2))
+
+
+  ;; get-all-course-ids tests
+  (check-equal?
+   (get-all-course-ids
+    (group-all "CPE" "101" "CPE" "102" "CPE" "103"))
+   (set CPE101 CPE102 CPE103))
+
+  (check-equal?
+   (get-all-course-ids
+    (one-of (list
+             (exactly CPE101)
+             (group-all "CPE" "102" "CPE" "103")
+             (group-any "CPE" "225" "CPE" "357"))))
+   (set CPE101 CPE102 CPE103 CPE225 CPE357))
+
+  ;; satisfiable tests
+  (check-true
+   (satisfiable
+    (one-of (list
+             (exactly CPE101)
+             (group-all "CPE" "102" "CPE" "103")
+             (group-any "CPE" "225" "CPE" "357")))))
+
+  (check-false
+   (satisfiable
+    (one-of empty)))
+
+  (check-false
+   (satisfiable
+    (all-of (list
+             (exactly CPE101)
+             (exactly CPE101))))))
 
 (provide
  meets

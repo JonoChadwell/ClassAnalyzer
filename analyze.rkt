@@ -321,7 +321,7 @@
      (list "Major:" (curriculum-name major))
      (list "Earliest Possible Graduation:"
            (number->string
-            (max-list (cons current-quarter (hash-keys proposed-schedule)))))
+            (max-int-list (cons current-quarter (hash-keys proposed-schedule)))))
      (list "Min core units needed:"
            (number->string
             (get-min-core-units coursework

@@ -57,7 +57,7 @@
 ;; earliest quarter out of classes listed for the student).
 (: student-first-quarter (-> student Quarter))
 (define (student-first-quarter stdnt)
-  (min-list
+  (min-int-list
    (hash-keys (student-coursework stdnt))))
 
 (module+ test

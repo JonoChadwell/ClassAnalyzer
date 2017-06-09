@@ -162,7 +162,7 @@
 ; Counts the TE units from courses which can only supply up to 4 units
 (define (count-te-limited-units courses)
   (min 4
-       (sum-list
+       (sum-int-list
         (map get-num-units
              (filter
               (lambda (crs) (member crs te-four-unit-max))
@@ -170,7 +170,7 @@
 
 ; Counts the TE units from sources with no contribution limits
 (define (count-te-non-limited-units courses)
-  (sum-list
+  (sum-int-list
    (map get-num-units
         (filter
          valid-te?

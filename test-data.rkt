@@ -60,7 +60,7 @@
    "PHE"
    FAKE_ENGINEERING_REQ
    (lambda ([x : course-set])
-     (sum-list
+     (sum-int-list
       (map
        (lambda ([x : course-id])
          (if (< (cast (string->number (course-id-number x)) Real) 300)
