@@ -255,15 +255,19 @@
    (boolean->string (meets
                      (student-current-classes stdnt)
                      (course-prereqs crs)))
-   (let ([student-classes (set-union
-                           (student-current-classes stdnt)
-                           (student-planned-classes stdnt))])
-     (number->string
-      (quarter-difference
-       (minimum-graduation-quarter
-        student-classes (student-major stdnt) (quarter-after next-quarter))
-       (minimum-graduation-quarter
-        (set-remove student-classes (course-identifier crs)) (student-major stdnt) (quarter-after next-quarter)))))
+   (let* ([current-classes (student-current-classes stdnt)]
+          [planned-classes (student-planned-classes stdnt)]
+          [student-classes (set-union
+                            current-classes
+                            planned-classes)])
+     (if (set-member? current-classes (course-identifier crs))
+         "0"
+         (number->string
+          (quarter-difference
+           (minimum-graduation-quarter
+            student-classes (student-major stdnt) (quarter-after next-quarter))
+           (minimum-graduation-quarter
+            (set-remove student-classes (course-identifier crs)) (student-major stdnt) (quarter-after next-quarter))))))
    (boolean->string (set-member?
                      (student-current-classes stdnt)
                      (course-identifier crs)))))
