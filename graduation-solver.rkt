@@ -3,7 +3,6 @@
 (require "types.rkt" "utilities.rkt" "course.rkt" "quarter.rkt")
 
 ;; TODO properly handle concurrent class requirements
-;; TODO properly handle per quarter timing constraints
 ;; TODO make schedules that have no more than 16 units per quarter
 
 ;; A course tree represents a course and the minimal prereqs a student can get to take each node
