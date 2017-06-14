@@ -22,63 +22,31 @@
 (define (course->string crs)
   (string-append (course-id-dept crs) "_" (course-id-number crs)))
 
-#|
-;; Current enrollment
-(define current-enrollment-data
-  (map
-   (lambda (considered-course)
-     (vector
-      (course->string considered-course)
-      (length
-       (filter
-        (lambda (stdnt)
-          (set-member? (student-enrolled-classes stdnt) considered-course))
-        student-list))))
-   (hash-keys important-courses)))
-
-;; Course completion
-(define courses-completed-data
-  (map
-   (lambda (considered-course)
-     (vector
-      (course->string considered-course)
-      (length
-       (filter
-        (lambda (stdnt)
-          (set-member? (student-current-classes stdnt) considered-course))
-        student-list))))
-   (hash-keys important-courses)))
-
-(define (student-courses stdnt)
-  (hash-ref (student-coursework stdnt) next-quarter (lambda () (set))))
-
+;; Gets the number of units a student is planning on taking next quarter
 (define (student-units stdnt)
-  (let ([classes (student-courses stdnt)])
-        (sum-list (map get-num-units (set->list classes)))))
+  (let ([classes (student-planned-classes stdnt)])
+    (sum-int-list (map get-num-units (set->list classes)))))
 
-;; Student units taken
-(define student-units-data
-  (map
-   (lambda (stdnt)
-     (list
-      (student-id stdnt)
-      (student-units stdnt)
-      (student-courses stdnt)))
-   (filter
+;; Tallies up the amount of units each student's plan has them taking
+(define (get-units-planned-analysis)
+  (cons
+   (list
+    "emplid"
+    "email"
+    "units planned"
+    "courses planned")
+   (map
     (lambda (stdnt)
-      (> (student-units stdnt) 16))
+      (list*
+       (student-id stdnt)
+       (student-email stdnt)
+       (number->string (student-units stdnt))
+       (map course-id->string (set->list (student-planned-classes stdnt)))))
     student-list)))
 
-(define (print-student-units-data)
-  (for-each
-   (lambda (lst)
-     (display (string-append (first lst) ", " (number->string (second lst)) ", "))
-     (for-each
-      (lambda (crs)
-        (display (string-append (course-id->string crs) ", ")))
-      (set->list (third lst)))
-     (displayln ""))
-   student-units-data))
+;; Generates a file containing details about the number of units students are taking
+(define (generate-units-planned-analysis-file)
+  (write-csv "units-planned" (get-units-planned-analysis)))
 
 (define (get-course-counts-recursive courses)
   (if (empty? courses)
@@ -105,17 +73,8 @@
     (lambda (x) (> x 1))
     (get-course-counts stdnt))))
 
-;; student duplicated course planning
-(define duplicated-course-data
-  (filter
-   (lambda (pr)
-     (not (empty? (right pr))))
-   (map
-    (lambda (stdnt) (pair stdnt (get-duplicated-courses stdnt)))
-    student-list)))
-
-;; student past and future courses
-(define planned-and-taken-data
+;; Gets students whose plan includes a class they have will have already completed
+(define (get-completed-and-planned-data)
   (filter
    (lambda (pr)
      (not (set-empty? (right pr))))
@@ -125,30 +84,21 @@
                                  (student-planned-classes stdnt))))
     student-list)))
 
-(define (print-planned-and-taken-data)
-  (for-each
-   (lambda (pr)
-     (display (string-append (student-id (left pr)) ", "))
-     (for-each
-      (lambda (crs)
-        (display (string-append (course-id->string crs) ", ")))
-      (set->list (right pr)))
-     (displayln ""))
-   planned-and-taken-data))
+;; Writes an analysis file detailing students whose plan for next quarter includes classes they will
+;; will have completed by the beginning of next quarter
+(define (generate-completed-and-planned-analysis-file)
+  (write-csv
+   "completed-and-planned"
+   (cons
+    (list "emplid" "email" "duplicated classes")
+    (map
+     (lambda (pr)
+       (list*
+        (student-id (left pr))
+        (student-email (left pr))
+        (map course-id->string (set->list (right pr)))))
+     (get-completed-and-planned-data)))))
 
-(define plot-data courses-completed-data)
-
-(define (do-plot)
-  (plot (discrete-histogram
-         plot-data)))
-
-(plot-title "Civil Engineering Core Course Need")
-(plot-x-label "Course")
-(plot-y-label "Number of Students")
-(plot-width 800)
-
-;; (do-plot)
-|#
 ;; creates pairings between student id and earliest potential graduation date
 (define (process-grad-info stdnt)
   (pair
@@ -288,7 +238,7 @@
     (for-each
      (lambda (crs-id)
        (write-csv
-        (string-append (course-id->string crs-id))
+        (string-append "courses/" (course-id->string crs-id))
         analysis))
      (set->list (course-identifiers crs)))))
 
@@ -355,6 +305,18 @@
   (for-each
    (lambda (stdnt)
      (write-csv 
-      (student-id stdnt)
+      (string-append "students/" (student-id stdnt))
       (get-student-analysis stdnt)))
    student-list))
+
+
+(define departments-to-analyze (list "CE" "CPE" "CSC" "SE"))
+;; Generates all analysis files.
+(define (analyze)
+  (for-each
+   (lambda (dept)
+     (generate-course-analysis-files dept))
+   departments-to-analyze)
+  (generate-student-analysis-files)
+  (generate-units-planned-analysis-file)
+  (generate-completed-and-planned-analysis-file))
