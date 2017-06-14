@@ -14,7 +14,7 @@
   "quarter.rkt"
   plot)
 
-(define student-list (get-students-from-file "data/2174-ce-grade-data.csv"))
+(define student-list (get-students-from-file "data/2174-computing-major-grade-data.csv"))
 
 (define (get-matching-students courses req)
   (filter (lambda (x) (meets x req)) courses))
@@ -313,6 +313,9 @@
 (define departments-to-analyze (list "CE" "CPE" "CSC" "SE"))
 ;; Generates all analysis files.
 (define (analyze)
+  (make-directory* "generated/")
+  (make-directory* "generated/courses/")
+  (make-directory* "generated/students/")
   (for-each
    (lambda (dept)
      (generate-course-analysis-files dept))
